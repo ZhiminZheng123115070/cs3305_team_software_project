@@ -67,17 +67,15 @@ spring:
       enabled: true
   # Redis Configuration
   redis:
-    # Address (Replace with your school's Redis server address)
-    # Example: host: redis.school.edu or host: 192.168.1.100
+    # Address
     host: localhost
-    # Port, default is 6379 (Change if your school uses a different port)
+    # Port, default is 6379
     port: 6379
-    # Database Index (Usually 0, but can be 0-15)
+    # Database Index
     database: 0
-    # Password (If your school's Redis requires a password, enter it here)
-    # Example: password: your_redis_password
+    # Password
     password:
-    # Connection Timeout (Increase if network is slow)
+    # Connection Timeout
     timeout: 10s
     lettuce:
       pool:

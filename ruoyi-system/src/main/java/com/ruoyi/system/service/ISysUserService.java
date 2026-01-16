@@ -43,6 +43,15 @@ public interface ISysUserService
      */
     public SysUser selectUserByUserName(String userName);
 
+    /*
+    * Query User by Phone
+    *
+    * @param phone
+    * @return User Object Information
+    * */
+
+    public SysUser selectUserByPhone(String phone);
+
     /**
      * Query User by User ID
      * 

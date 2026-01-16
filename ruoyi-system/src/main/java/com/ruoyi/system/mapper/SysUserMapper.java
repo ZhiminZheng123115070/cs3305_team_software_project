@@ -45,6 +45,14 @@ public interface SysUserMapper
     public SysUser selectUserByUserName(String userName);
 
     /**
+     * Query User by phone
+     *
+     * @param phone phone
+     * @return User Object Information
+     */
+    public SysUser selectUserByPhone(String phone);
+
+    /**
      * Query User by User ID
      * 
      * @param userId User ID

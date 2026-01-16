@@ -1,6 +1,6 @@
 import router from '@/router'
 import { MessageBox, } from 'element-ui'
-import { login, logout, getInfo, memberMobileLogin, managerMobileLogin } from '@/api/login'
+import { login, logout, getInfo, mobileLogin } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 import { isHttp, isEmpty } from "@/utils/validate"
 import defAva from '@/assets/images/profile.jpg'
@@ -58,10 +58,12 @@ const user = {
       })
     },
 
+    // Mobile phone login
     MobileLogin({ commit }, userInfo) {
       const phone = userInfo.phone.trim()
       const code = userInfo.code
       return new Promise((resolve, reject) => {
+        // Call mobileLogin API
         mobileLogin(phone, code).then(res => {
           setToken(res.token)
           commit('SET_TOKEN', res.token)

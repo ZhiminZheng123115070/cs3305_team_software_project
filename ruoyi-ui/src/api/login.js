@@ -66,7 +66,7 @@ export function mobileLogin(phone,code){
     code
   }
   return request({
-    url:'/member/login/mobile',
+    url:'/mobile/login',
     headers:{
       isToken: false,
       repeatSubmit: false

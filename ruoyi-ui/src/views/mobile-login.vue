@@ -98,7 +98,20 @@ export default {
       redirect: undefined
     }
   },
-  // ... (rest of the code remains same)
+  watch: {
+    $route: {
+      handler: function(route) {
+        this.redirect = route.query && route.query.redirect
+      },
+      immediate: true
+    }
+  },
+  beforeDestroy() {
+    // Clear the countdown timer before component destruction
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer)
+    }
+  },
   methods: {
     // Send verification code
     sendCode() {

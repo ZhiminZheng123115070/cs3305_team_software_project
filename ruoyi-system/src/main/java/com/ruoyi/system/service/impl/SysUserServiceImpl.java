@@ -118,6 +118,18 @@ public class SysUserServiceImpl implements ISysUserService
     }
 
     /**
+    * Query User by User Name
+     *
+     * @param phone User phone
+     * @return User Object Information
+    */
+
+    @Override
+    public SysUser selectUserByPhone(String phone){
+        return userMapper.selectUserByPhone(phone);
+    }
+
+    /**
      * Query User by User ID
      * 
      * @param userId User ID

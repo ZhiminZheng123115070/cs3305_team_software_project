@@ -83,7 +83,18 @@ service.interceptors.response.use(res => {
       return res.data
     }
     if (code === 401) {
-      if (!isRelogin.show) {
+      // Check if current path is login page or login-related API
+      const currentPath = window.location.pathname
+      const isLoginPage = currentPath === '/login' || currentPath === '/mobile-login' || currentPath === '/register'
+      const isLoginApi = res.config && res.config.url && (
+        res.config.url.includes('/login') || 
+        res.config.url.includes('/mobile/login') || 
+        res.config.url.includes('/mobile/sendCode') ||
+        res.config.url.includes('/register')
+      )
+      
+      // Don't show login expired message on login pages or login APIs
+      if (!isLoginPage && !isLoginApi && !isRelogin.show) {
         isRelogin.show = true
         MessageBox.confirm('Login status has expired, you can stay on this page or log in again', 'System Prompt', { confirmButtonText: 'Re-login', cancelButtonText: 'Cancel', type: 'warning' }).then(() => {
           isRelogin.show = false

@@ -9,7 +9,7 @@ import { isRelogin } from '@/utils/request'
 
 NProgress.configure({ showSpinner: false })
 
-const whiteList = ['/login', '/register']
+const whiteList = ['/login', '/register','/mobile-login']
 
 const isWhiteList = (path) => {
   return whiteList.some(pattern => isPathMatch(pattern, path))
@@ -20,10 +20,12 @@ router.beforeEach((to, from, next) => {
   if (getToken()) {
     to.meta.title && store.dispatch('settings/setTitle', to.meta.title)
     /* has token*/
-    if (to.path === '/login') {
+    // If user has token and tries to access login pages, redirect to home
+    if (to.path === '/login' || to.path === '/mobile-login') {
       next({ path: '/' })
       NProgress.done()
     } else if (isWhiteList(to.path)) {
+      // Other whitelist pages (like /register) can be accessed
       next()
     } else {
       if (store.getters.roles.length === 0) {
@@ -52,6 +54,8 @@ router.beforeEach((to, from, next) => {
       // In the whitelist, directly enter
       next()
     } else {
+      // Redirect to login page by default, but preserve redirect parameter
+      // Users can manually navigate to /mobile-login if they prefer
       next(`/login?redirect=${encodeURIComponent(to.fullPath)}`) // Otherwise redirect all to login page
       NProgress.done()
     }
