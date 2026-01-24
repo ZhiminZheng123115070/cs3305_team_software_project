@@ -537,3 +537,34 @@ create table gen_table_column (
   update_time       datetime                                   comment 'Update Time',
   primary key (column_id)
 ) engine=innodb auto_increment=1 comment = 'Code Generation Column Table';
+
+
+drop table if exists product;
+create table product(
+	product_id bigint(20) not null auto_increment comment 'product id',
+	barcode varchar(100) not null comment 'product barcode',
+	product_name varchar(200),
+	PRIMARY key(product_id)
+) engine=innodb auto_increment=1 comment = 'Code Generation Column Table';
+
+INSERT INTO product (barcode, product_name) VALUES 
+('880123456701', 'Apple iPhone 15 Pro Silicone Case - Black'),
+('880123456702', 'Samsung T7 Shield 1TB Portable SSD'),
+('880123456703', 'Logitech MX Master 3S Wireless Mouse'),
+('880123456704', 'Sony WH-1000XM5 Noise Canceling Headphones'),
+('880123456705', 'Dell UltraSharp 27" 4K USB-C Hub Monitor'),
+('880123456706', 'Moleskine Classic Notebook, Hard Cover, Large'),
+('880123456707', 'Parker Jotter Stainless Steel Ballpoint Pen'),
+('880123456708', 'Kindle Paperwhite (16 GB) - 6.8" Display'),
+('880123456709', 'Nespresso Vertuo Coffee and Espresso Maker'),
+('880123456710', 'Hydro Flask 32 oz Wide Mouth Water Bottle'),
+('880123456711', 'Listerine Cool Mint Antiseptic Mouthwash'),
+('880123456712', 'Colgate Total Whitening Toothpaste 2-Pack'),
+('880123456713', 'Neutrogena Hydro Boost Water Gel Moisturizer'),
+('880123456714', 'Old Spice High Endurance Deodorant for Men'),
+('880123456715', 'Oatly Oat Milk Barista Edition 1L'),
+('880123456716', 'Kind Protein Bars, Crunchy Peanut Butter'),
+('880123456717', 'SanDisk 128GB Extreme microSDXC Card'),
+('880123456718', 'Anker 735 Charger (GaNPrime 65W)'),
+('880123456719', 'Philips Hue White and Color Ambiance Bulb'),
+('880123456720', 'Fitbit Charge 6 Fitness Tracker');
