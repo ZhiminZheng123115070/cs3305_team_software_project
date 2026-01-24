@@ -16,7 +16,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
 // Expose proxy object through AOP framework, AopContext can access
 @EnableAspectJAutoProxy(exposeProxy = true)
 // Specify the package path to scan Mapper classes
-@MapperScan("com.ruoyi.**.mapper")
+@MapperScan({"com.ruoyi.**.mapper", "com.team6.mapper"})
 public class ApplicationConfig
 {
     /**

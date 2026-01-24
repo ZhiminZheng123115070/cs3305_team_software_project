@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team6.mapper.ProductMapper">
+
+    <resultMap id="productResultMap" type="com.team6.pojo.Product">
+        <result column="product_id" property="productId"/>
+        <result column="barcode" property="barcode"/>
+        <result column="product_name" property="productName"/>
+    </resultMap>
+    <select id="getProductBarcode" resultMap="productResultMap">
+        select product_id, barcode, product_name
+        from product
+        where barcode=#{barcode}
+    </select>
+
+
+</mapper>

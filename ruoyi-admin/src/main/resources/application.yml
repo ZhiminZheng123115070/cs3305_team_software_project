@@ -102,7 +102,7 @@ mybatis:
   # Search Specified Package Aliases
   typeAliasesPackage: com.ruoyi.**.domain
   # Configure Mapper Scanning, Find All mapper.xml Mapping Files
-  mapperLocations: classpath*:mapper/**/*Mapper.xml
+  mapperLocations: classpath*:mapper/**/*Mapper.xml,classpath*:com.team6.mapper/*Mapper.xml
   # Load Global Configuration File
   configLocation: classpath:mybatis/mybatis-config.xml
 
