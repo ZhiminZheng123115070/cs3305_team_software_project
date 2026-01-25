@@ -538,7 +538,9 @@ create table gen_table_column (
   primary key (column_id)
 ) engine=innodb auto_increment=1 comment = 'Code Generation Column Table';
 
-
+-- ----------------------------
+-- 20. product
+-- ----------------------------
 drop table if exists product;
 create table product(
 	product_id bigint(20) not null auto_increment comment 'product id',
@@ -547,7 +549,7 @@ create table product(
 	PRIMARY key(product_id)
 ) engine=innodb auto_increment=1 comment = 'Code Generation Column Table';
 
-INSERT INTO product (barcode, product_name) VALUES 
+INSERT INTO product (barcode, product_name) VALUES
 ('880123456701', 'Apple iPhone 15 Pro Silicone Case - Black'),
 ('880123456702', 'Samsung T7 Shield 1TB Portable SSD'),
 ('880123456703', 'Logitech MX Master 3S Wireless Mouse'),
@@ -568,3 +570,4 @@ INSERT INTO product (barcode, product_name) VALUES
 ('880123456718', 'Anker 735 Charger (GaNPrime 65W)'),
 ('880123456719', 'Philips Hue White and Color Ambiance Bulb'),
 ('880123456720', 'Fitbit Charge 6 Fitness Tracker');
+
