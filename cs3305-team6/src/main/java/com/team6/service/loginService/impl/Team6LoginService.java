@@ -129,10 +129,7 @@ public class Team6LoginService  implements ITeam6LoginService {
          if(rows<0){
              throw new ServiceException("Automatic user creation failed");
          }
-
          return userService.selectUserByPhone(phone);
-
-
 
     }
 }
