@@ -49,33 +49,83 @@ class LoginIndex extends StatefulWidget {
 }
 
 class _LoginIndexState extends State<LoginIndex> {
-  var url =
-      "/9j/4AAQSkZJRgABAgAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAA8AKADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDtrW1ga1hZoIySikkoOeKsCztv+feL/vgU2z/484P+ua/yqyKiMY8q0IjGPKtCIWdr/wA+0P8A3wKeLK1/59of+/YqQVWuNVsbO5jt7m6ihlkUsiyNjcB1xmrjT5naKuPlj2JxZWn/AD6w/wDfsU4WNp/z6wf9+xWXqHizQ9LV";
-
+  /// 验证码图片 base64，空表示未加载或加载失败
+  var url = "";
   var uuid = "";
   var password = "";
   var username = "";
   var code = "";
+  /// 验证码是否加载失败（如网络错误）
+  var captchaLoadFailed = false;
 
   @override
-  // ignore: must_call_super
   void initState() {
-    // TODO: implement initState
+    super.initState();
     getImg();
   }
 
-  // ignore: prefer_typing_uninitialized_variables
-
   void getImg() async {
+    setState(() => captchaLoadFailed = false);
     try {
       var reps = await getImage();
-      setState(() {
-        url = reps.data["img"];
-        uuid = reps.data["uuid"];
-      });
-      // print(url);
+      var data = reps.data;
+      if (data is Map && data["img"] != null && data["uuid"] != null) {
+        setState(() {
+          url = data["img"].toString();
+          uuid = data["uuid"].toString();
+        });
+      } else {
+        setState(() {
+          url = "";
+          captchaLoadFailed = true;
+        });
+      }
     } catch (e) {
       print(e);
+      setState(() {
+        url = "";
+        captchaLoadFailed = true;
+      });
+    }
+  }
+
+  /// 验证码区域：无数据时显示占位/重试，有数据时安全解码显示，避免 "Codec failed... invalid image data"
+  Widget _buildCaptchaImage() {
+    if (url.isEmpty) {
+      return Container(
+        color: Colors.grey[200],
+        alignment: Alignment.center,
+        child: Text(
+          captchaLoadFailed ? "Load failed\nTap to retry" : "Loading...",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+        ),
+      );
+    }
+    try {
+      return Image.memory(
+        Base64Decoder().convert(url),
+        fit: BoxFit.fill,
+        errorBuilder: (_, __, ___) => Container(
+          color: Colors.grey[200],
+          alignment: Alignment.center,
+          child: Text(
+            "Invalid image\nTap to retry",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          ),
+        ),
+      );
+    } catch (_) {
+      return Container(
+        color: Colors.grey[200],
+        alignment: Alignment.center,
+        child: Text(
+          "Invalid image\nTap to retry",
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+        ),
+      );
     }
   }
 
@@ -166,13 +216,8 @@ class _LoginIndexState extends State<LoginIndex> {
                       Expanded(
                           flex: 5,
                           child: InkWell(
-                              onTap: () {
-                                getImg();
-                              },
-                              child: Image.memory(
-                                const Base64Decoder().convert(url),
-                                fit: BoxFit.fill,
-                              ))),
+                              onTap: () => getImg(),
+                              child: _buildCaptchaImage())),
                     ],
                   )),
               const SizedBox(
@@ -229,9 +274,9 @@ class _LoginIndexState extends State<LoginIndex> {
                       }
                       var requestData = {
                         "uuid": uuid,
-                        "username": username,
-                        "password": password,
-                        "code": code
+                        "username": username.trim(),
+                        "password": password.trim(),
+                        "code": code.trim()
                       };
 
                       var data = await logInByClient(requestData);

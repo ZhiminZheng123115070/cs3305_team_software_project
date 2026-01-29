@@ -18,11 +18,10 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    GetStorage().write(
-        "initialRoute",
-        GetStorage().hasData("token")
-            ? AppPages.INITIAL
-            : AppPages.INITIALLOGIN);
+    // 未登录时先进入登录页，登录后进入首页
+    final hasToken = GetStorage().hasData("token");
+    final initialRoute =
+        hasToken ? AppPages.INITIAL : AppPages.INITIALLOGIN;
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       defaultTransition: Transition.fade,
@@ -34,7 +33,7 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale("en", "US"), Locale("zh", "CN")],
 
-      initialRoute: GetStorage().read("initialRoute"),
+      initialRoute: initialRoute,
       getPages: AppPages.routes,
       routingCallback: (routing) {
         if (routing?.current != "/login" &&

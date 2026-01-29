@@ -10,7 +10,7 @@ class DioConfig {
   // Android emulator can use 10.0.2.2:8080
   // iOS emulator can use localhost:8080
   // Real device needs to use the computer's LAN IP, e.g.: 192.168.x.x:8080
-  static const baseURL = "http://localhost:8080"; // Domain name
+  static const baseURL = "http://10.0.2.2:8080"; // Domain name
   static const timeout = 10000; // Timeout duration
 }
 

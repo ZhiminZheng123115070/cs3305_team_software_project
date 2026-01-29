@@ -163,6 +163,55 @@ class _WorkIndexState extends State<WorkIndex> {
                   autoplay: true,
                 ),
               ),
+              // Member section: Product Query entry
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 4, bottom: 8),
+                      child: Text(
+                        "Member",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: Colors.blue.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        onTap: () => Get.toNamed("/product/query"),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 16),
+                          child: Row(
+                            children: [
+                              Icon(Icons.qr_code_scanner,
+                                  color: Colors.blue.shade700, size: 28),
+                              const SizedBox(width: 12),
+                              Text(
+                                "Product Query",
+                                style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue.shade900),
+                              ),
+                              const Spacer(),
+                              Icon(Icons.arrow_forward_ios,
+                                  size: 14, color: Colors.blue.shade700),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Container(
                 height: 40,
                 decoration: BoxDecoration(),

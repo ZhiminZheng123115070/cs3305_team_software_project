@@ -37,4 +37,6 @@ abstract class AppRoutes {
 
 
   static const swagger = "/tool/swagger/index";
+
+  static const productQuery = "/product/query";
 }

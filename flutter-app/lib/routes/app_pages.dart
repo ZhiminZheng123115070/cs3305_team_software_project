@@ -19,6 +19,7 @@ import '../pages/system/menu/index.dart';
 import '../pages/system/notice/index.dart';
 import '../pages/system/post/index.dart';
 import '../pages/system/user/index.dart';
+import '../pages/product/query.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -56,5 +57,6 @@ class AppPages {
     GetPage(name: AppRoutes.notice, page: () => const NoticeIndex()),
     GetPage(name: AppRoutes.post, page: () => const PostIndex()),
     GetPage(name: AppRoutes.swagger, page: () => const SwaggerIndex()),
+    GetPage(name: AppRoutes.productQuery, page: () => const ProductQueryPage()),
   ];
 }
