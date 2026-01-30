@@ -18,7 +18,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 未登录时先进入登录页，登录后进入首页
     final hasToken = GetStorage().hasData("token");
     final initialRoute =
         hasToken ? AppPages.INITIAL : AppPages.INITIALLOGIN;

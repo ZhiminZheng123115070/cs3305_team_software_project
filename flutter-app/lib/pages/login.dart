@@ -304,6 +304,44 @@ class _LoginIndexState extends State<LoginIndex> {
                       ),
                     ),
                   )),
+              const SizedBox(height: 20),
+              // Google login 按钮（左侧为图标；若需自定义图，将 google_logo.png 放入 static/images/ 并取消下方注释）
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: 接入 Google 登录
+                  },
+                  icon: const Icon(Icons.g_mobiledata, size: 24),
+                  label: const Text("Google login"),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Mobile login 按钮（左侧为图标；若需自定义图，将 mobile_icon.png 放入 static/images/ 并取消下方注释）
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Get.toNamed("/mobileLogin");
+                  },
+                  icon: const Icon(Icons.phone_android, size: 24),
+                  label: const Text("Mobile login"),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(
                 height: 10,
               ),
