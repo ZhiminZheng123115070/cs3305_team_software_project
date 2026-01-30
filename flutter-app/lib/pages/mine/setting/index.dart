@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:ruoyi_app/api/login.dart';
 import 'package:ruoyi_app/icon/ruoyi_icon.dart';
 import 'package:ruoyi_app/utils/sputils.dart';
 
@@ -95,7 +96,10 @@ class _SettingsState extends State<Settings> {
                         middleText: "Are you sure you want to log out?",
                         textCancel: "Cancel",
                         textConfirm: "Confirm",
-                        onConfirm: () {
+                        onConfirm: () async {
+                          try {
+                            await logout();
+                          } catch (_) {}
                           SPUtil().clean();
                           GetStorage().erase();
                           Get.offAll(() => const MyHome());

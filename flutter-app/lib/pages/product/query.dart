@@ -175,7 +175,7 @@ class _ProductQueryPageState extends State<ProductQueryPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product Name
+            // Product Name (from app_products.name)
             Row(
               children: [
                 const Icon(Icons.shopping_bag, color: Colors.blue),
@@ -199,6 +199,22 @@ class _ProductQueryPageState extends State<ProductQueryPage> {
 
             // Barcode
             _buildInfoRow('Barcode:', _product!.barcode),
+            if (_product!.brand != null && _product!.brand!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildInfoRow('Brand:', _product!.brand!),
+            ],
+            if (_product!.price != null) ...[
+              const SizedBox(height: 12),
+              _buildInfoRow(
+                'Price:',
+                '${_product!.price} ${_product!.currency ?? ''}'.trim(),
+              ),
+            ],
+            if (_product!.nutriScore != null &&
+                _product!.nutriScore!.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildInfoRow('Nutri-Score:', _product!.nutriScore!),
+            ],
             const SizedBox(height: 12),
 
             // Search time

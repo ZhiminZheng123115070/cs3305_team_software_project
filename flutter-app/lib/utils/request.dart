@@ -83,6 +83,13 @@ class DioRequest {
           SPUtil().setString("token", response.data["token"]);
         }
       }
+      // Handle Google login callback token storage
+      if (response.realUri.path == "/user/login/google/callback") {
+        if (response.data["code"] == 200) {
+          GetStorage().write("token", response.data["token"]);
+          SPUtil().setString("token", response.data["token"]);
+        }
+      }
       print("================== Response Data ==========================");
       print("code = ${response.statusCode}");
       print("data = ${response.data}");

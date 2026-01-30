@@ -2,11 +2,18 @@ import 'dart:convert';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
 import 'package:ruoyi_app/icon/ruoyi_icon.dart';
 
 import '../api/login.dart';
+
+/// 清除应用内 WebView 的 Cookie，下次 Google 登录将不显示此前保存的账号（仅 Android）
+Future<void> clearWebViewCookies() async {
+  const channel = MethodChannel('com.example.ruoyi_app/webview_cookies');
+  await channel.invokeMethod('clearCookies');
+}
 
 class MyHome extends StatelessWidget {
   const MyHome({Key? key}) : super(key: key);
@@ -305,13 +312,67 @@ class _LoginIndexState extends State<LoginIndex> {
                     ),
                   )),
               const SizedBox(height: 20),
-              // Google login 按钮（左侧为图标；若需自定义图，将 google_logo.png 放入 static/images/ 并取消下方注释）
+              // Google login（应用内 WebView；若提示「此浏览器或应用可能不安全」请用上方用户名或手机号登录）
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: 接入 Google 登录
+                  onPressed: () async {
+                    try {
+                      // 先清除 WebView 中可能存在的此前 Google 账号缓存，再进入 Google 登录页
+                      try {
+                        await clearWebViewCookies();
+                      } catch (_) {}
+                      var response = await getGoogleAuthUrl();
+                      var data = response.data as Map<String, dynamic>?;
+                      if (data != null &&
+                          data['code'] == 200 &&
+                          data['authUrl'] != null) {
+                        final authUrl = data['authUrl'] as String;
+                        final code = await Get.toNamed("/login/googleWebView",
+                            arguments: {"authUrl": authUrl});
+                        if (code != null && code is String) {
+                          var callbackResp = await googleCallback(code);
+                          var callbackData =
+                              callbackResp.data as Map<String, dynamic>?;
+                          if (callbackData != null &&
+                              callbackData['code'] == 200) {
+                            Get.toNamed("/home");
+                          } else {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                content: Text(
+                                  callbackData?['msg'] ??
+                                      'Google login failed',
+                                  style: const TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            content: Text(
+                              data?['msg'] ?? 'Failed to get Google auth URL',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          content: Text(
+                            'Error: $e',
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.g_mobiledata, size: 24),
                   label: const Text("Google login"),

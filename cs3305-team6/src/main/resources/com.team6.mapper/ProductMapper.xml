@@ -29,6 +29,7 @@
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
 
+    <!-- Product search: query app_products table only -->
     <select id="getProductBarcode" resultMap="productResultMap">
         select product_id, barcode, name, brand, image_url, price, currency,
                energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,

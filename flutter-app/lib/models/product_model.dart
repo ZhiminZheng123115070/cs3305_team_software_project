@@ -30,37 +30,57 @@ class ApiResponse {
   }
 }
 
-// Product data class
+// Product data class (matches app_products / ProductSearchResponse API)
 class Product {
-  final int productId;       // product ID
-  final String barcode;      // barcode
-  final String productName;  // product name
+  final int productId;
+  final String barcode;
+  final String productName;  // from API field "name"
+  final String? brand;
+  final String? imageUrl;
+  final num? price;          // from app_products.price
+  final String? currency;
+  final String? nutriScore;
 
   Product({
     required this.productId,
     required this.barcode,
     required this.productName,
+    this.brand,
+    this.imageUrl,
+    this.price,
+    this.currency,
+    this.nutriScore,
   });
 
-  // Factory method to create Product from JSON
+  // Factory method to create Product from JSON (app_products response)
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      productId: json['productId']?.toInt() ?? 0,
-      barcode: json['barcode'] ?? '',
-      productName: json['productName'] ?? 'Unknown Product',
+      productId: (json['productId'] is int)
+          ? json['productId'] as int
+          : (json['productId'] as num?)?.toInt() ?? 0,
+      barcode: json['barcode']?.toString() ?? '',
+      productName: json['name']?.toString() ?? json['productName']?.toString() ?? 'Unknown Product',
+      brand: json['brand']?.toString(),
+      imageUrl: json['imageUrl']?.toString(),
+      price: json['price'] != null ? (json['price'] as num) : null,
+      currency: json['currency']?.toString(),
+      nutriScore: json['nutriScore']?.toString(),
     );
   }
 
-  // Convert Product to Map (if needed)
   Map<String, dynamic> toJson() {
     return {
       'productId': productId,
       'barcode': barcode,
-      'productName': productName,
+      'name': productName,
+      if (brand != null) 'brand': brand,
+      if (imageUrl != null) 'imageUrl': imageUrl,
+      if (price != null) 'price': price,
+      if (currency != null) 'currency': currency,
+      if (nutriScore != null) 'nutriScore': nutriScore,
     };
   }
 
-  // Get product summary (for display)
   String get summary {
     return 'Product ID: $productId\nBarcode: $barcode\nName: $productName';
   }

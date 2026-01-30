@@ -134,3 +134,10 @@ xss:
   excludes: /system/notice
   # Matching Links
   urlPatterns: /system/*,/monitor/*,/tool/*
+
+# Google OAuth2 (for team6 Google login). 请勿提交真实密钥！在 application-druid.yml 或环境变量中配置。
+# 若已误传 GitHub：立即到 Google Cloud Console 重置 Client Secret，再在此处或 application-druid.yml 填新值。
+google:
+  clientId: ${GOOGLE_CLIENT_ID:your_google_client_id}
+  clientSecret: ${GOOGLE_CLIENT_SECRET:your_google_client_secret}
+  redirectUri: ${GOOGLE_REDIRECT_URI:http://localhost:1024/google-login}
