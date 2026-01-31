@@ -37,6 +37,22 @@ nbdist/
 .nb-gradle/
 
 ######################################################################
+# Local config (do not commit – may contain secrets: DB, OAuth, etc.)
+application.yml
+application-druid.yml
+application-local.yml
+**/application.yml
+**/application-druid.yml
+**/application-local.yml
+
+######################################################################
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+**/.DS_Store
+
+######################################################################
 # Others
 *.log
 *.xml.versionsBackup
