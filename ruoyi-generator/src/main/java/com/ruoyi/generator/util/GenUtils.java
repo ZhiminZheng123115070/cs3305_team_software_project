@@ -208,8 +208,8 @@ public class GenUtils
     }
 
     /**
-     * Keyword replacement
-     * 
+     * Remove Chinese table-name prefix from text (RuoYi generator keyword).
+     *
      * @param text Name to be replaced
      * @return Replaced name
      */

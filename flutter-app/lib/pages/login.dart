@@ -7,13 +7,9 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
 import 'package:ruoyi_app/icon/ruoyi_icon.dart';
 
-import '../api/login.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-/// 清除应用内 WebView 的 Cookie，下次 Google 登录将不显示此前保存的账号（仅 Android）
-Future<void> clearWebViewCookies() async {
-  const channel = MethodChannel('com.example.ruoyi_app/webview_cookies');
-  await channel.invokeMethod('clearCookies');
-}
+import '../api/login.dart';
 
 class MyHome extends StatelessWidget {
   const MyHome({Key? key}) : super(key: key);
@@ -56,13 +52,13 @@ class LoginIndex extends StatefulWidget {
 }
 
 class _LoginIndexState extends State<LoginIndex> {
-  /// 验证码图片 base64，空表示未加载或加载失败
+  /// Captcha image base64; empty means not loaded or load failed
   var url = "";
   var uuid = "";
   var password = "";
   var username = "";
   var code = "";
-  /// 验证码是否加载失败（如网络错误）
+  /// Whether captcha load failed (e.g. network error)
   var captchaLoadFailed = false;
 
   @override
@@ -96,16 +92,16 @@ class _LoginIndexState extends State<LoginIndex> {
     }
   }
 
-  /// 验证码区域：无数据时显示占位/重试，有数据时安全解码显示，避免 "Codec failed... invalid image data"
+  /// Captcha area: placeholder/retry when no data; safe decode when data exists to avoid Codec failed
   Widget _buildCaptchaImage() {
     if (url.isEmpty) {
       return Container(
-        color: Colors.grey[200],
+        color: Colors.grey.shade200,
         alignment: Alignment.center,
         child: Text(
           captchaLoadFailed ? "Load failed\nTap to retry" : "Loading...",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
         ),
       );
     }
@@ -114,23 +110,23 @@ class _LoginIndexState extends State<LoginIndex> {
         Base64Decoder().convert(url),
         fit: BoxFit.fill,
         errorBuilder: (_, __, ___) => Container(
-          color: Colors.grey[200],
+          color: Colors.grey.shade200,
           alignment: Alignment.center,
           child: Text(
             "Invalid image\nTap to retry",
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
           ),
         ),
       );
     } catch (_) {
       return Container(
-        color: Colors.grey[200],
+        color: Colors.grey.shade200,
         alignment: Alignment.center,
         child: Text(
           "Invalid image\nTap to retry",
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
         ),
       );
     }
@@ -312,44 +308,36 @@ class _LoginIndexState extends State<LoginIndex> {
                     ),
                   )),
               const SizedBox(height: 20),
-              // Google login（应用内 WebView；若提示「此浏览器或应用可能不安全」请用上方用户名或手机号登录）
+              // Google login: opens in system browser (Google OAuth policy); browser returns to app after login
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: OutlinedButton.icon(
                   onPressed: () async {
                     try {
-                      // 先清除 WebView 中可能存在的此前 Google 账号缓存，再进入 Google 登录页
-                      try {
-                        await clearWebViewCookies();
-                      } catch (_) {}
                       var response = await getGoogleAuthUrl();
                       var data = response.data as Map<String, dynamic>?;
                       if (data != null &&
                           data['code'] == 200 &&
                           data['authUrl'] != null) {
                         final authUrl = data['authUrl'] as String;
-                        final code = await Get.toNamed("/login/googleWebView",
-                            arguments: {"authUrl": authUrl});
-                        if (code != null && code is String) {
-                          var callbackResp = await googleCallback(code);
-                          var callbackData =
-                              callbackResp.data as Map<String, dynamic>?;
-                          if (callbackData != null &&
-                              callbackData['code'] == 200) {
-                            Get.toNamed("/home");
-                          } else {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                content: Text(
-                                  callbackData?['msg'] ??
-                                      'Google login failed',
-                                  style: const TextStyle(color: Colors.red),
-                                ),
+                        final uri = Uri.tryParse(authUrl);
+                        if (uri != null &&
+                            await canLaunchUrl(uri)) {
+                          await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication);
+                          // Login result returns to app via deep link ruoyiapp://google-login?code=xxx, handled in main
+                        } else {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              content: Text(
+                                'Cannot open browser',
+                                style: const TextStyle(color: Colors.red),
                               ),
-                            );
-                          }
+                            ),
+                          );
                         }
                       } else {
                         showDialog(
@@ -385,7 +373,7 @@ class _LoginIndexState extends State<LoginIndex> {
                 ),
               ),
               const SizedBox(height: 12),
-              // Mobile login 按钮（左侧为图标；若需自定义图，将 mobile_icon.png 放入 static/images/ 并取消下方注释）
+              // Mobile login button (icon on left; for custom icon put mobile_icon.png in static/images/ and uncomment below)
               SizedBox(
                 width: double.infinity,
                 height: 48,

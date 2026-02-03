@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 /**
@@ -29,7 +33,7 @@ public class Team6GoogleLoginSystem {
     private String redirectUri;
 
     /**
-     * Google login callback（App 内 WebView 用 code 换 token，返回 JSON）
+     * Google login callback: exchange code for token (JSON response).
      */
     @GetMapping("/user/login/google/callback")
     public AjaxResult callback(@RequestParam("code") String code) {
@@ -53,7 +57,7 @@ public class Team6GoogleLoginSystem {
         try {
             String state = "google_login_" + System.currentTimeMillis();
             String scope = "openid email profile";
-            // prompt=select_account：每次打开授权页都显示账号选择，方便退出后重新选账号登录
+            // prompt=select_account: show account picker each time so user can switch account
             String authUrl = String.format(
                 "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s&prompt=select_account",
                 clientId,
@@ -66,5 +70,19 @@ public class Team6GoogleLoginSystem {
             log.error("Failed to build Google auth URL: {}", e.getMessage(), e);
             return AjaxResult.error("Failed to build auth URL: " + e.getMessage());
         }
+    }
+
+    /**
+     * OAuth2 redirect: Google redirects the browser here after user signs in.
+     * We redirect the browser to the app custom scheme so the app receives the code.
+     * Use this as redirect_uri in Google Console when opening auth in system browser (not WebView).
+     */
+    @GetMapping("/oauth2/google/callback")
+    public void oauth2Redirect(
+            @RequestParam("code") String code,
+            @RequestParam(value = "state", required = false) String state,
+            HttpServletResponse response) throws IOException {
+        String appUrl = "ruoyiapp://google-login?code=" + URLEncoder.encode(code, StandardCharsets.UTF_8.name());
+        response.sendRedirect(appUrl);
     }
 }

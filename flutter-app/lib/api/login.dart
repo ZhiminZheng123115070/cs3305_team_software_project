@@ -36,7 +36,7 @@ var googleCallback = (String code) async {
   );
 };
 
-// 登出：调用后端使 JWT 失效（删除 Redis 中的 token），再清本地
+// Logout: call backend to invalidate JWT (remove token from Redis), then clear local
 var logout = () async {
   return await DioRequest().httpRequest("/logout", true, "post");
 };

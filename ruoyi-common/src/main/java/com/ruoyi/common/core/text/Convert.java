@@ -540,9 +540,9 @@ public class Convert
 
     /**
      * Convert to boolean<br>
-     * String supported values: true, false, yes, ok, no, 1, 0, yes (是), no (否). If the given value is empty, or conversion fails, return the default value<br>
+     * String supported values: true, false, yes, ok, no, 1, 0, and Chinese yes/no literals. If the given value is empty, or conversion fails, return the default value<br>
      * Conversion failure will not throw an error
-     * Note: "是" and "否" are Chinese string literals for boolean conversion
+     * Note: Chinese characters for yes and no are also accepted
      *
      * @param value Value to be converted
      * @param defaultValue Default value when conversion error occurs
@@ -975,7 +975,7 @@ public class Convert
 
     /**
      * Convert numeric amount to Chinese uppercase currency format
-     * Note: This method uses Chinese currency characters (零, 壹, 贰, etc.) for amount conversion
+     * Note: This method uses Chinese uppercase currency characters for amount conversion
      *
      * @param n Number
      * @return Chinese uppercase currency string

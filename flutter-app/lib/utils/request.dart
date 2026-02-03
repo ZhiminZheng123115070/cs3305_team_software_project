@@ -1,17 +1,22 @@
 import "package:dio/dio.dart";
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ruoyi_app/utils/sputils.dart';
 
 /// Dio network request configuration table (custom)
 class DioConfig {
-  // Development environment: local backend address
-  // Note: If the Flutter App is running on an emulator/real device, localhost needs to be changed to the computer's LAN IP
-  // Android emulator can use 10.0.2.2:8080
-  // iOS emulator can use localhost:8080
-  // Real device needs to use the computer's LAN IP, e.g.: 192.168.x.x:8080
-  static const baseURL = "http://10.0.2.2:8080"; // Domain name
-  static const timeout = 10000; // Timeout duration
+  /// Backend base URL by platform:
+  /// - Web: localhost:8080
+  /// - iOS simulator: 127.0.0.1:8080 (use Mac IP on real device if needed)
+  /// - Android emulator: 10.0.2.2:8080
+  static String get baseURL {
+    if (kIsWeb) return "http://localhost:8080";
+    if (defaultTargetPlatform == TargetPlatform.iOS) return "http://127.0.0.1:8080";
+    if (defaultTargetPlatform == TargetPlatform.android) return "http://10.0.2.2:8080";
+    return "http://localhost:8080";
+  }
+  static const timeout = 10000;
 }
 
 // Network request utility class
