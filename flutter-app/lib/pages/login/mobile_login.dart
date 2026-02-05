@@ -88,11 +88,12 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
           onPressed: () => Get.back(),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
             TextField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
@@ -136,6 +137,7 @@ class _MobileLoginPageState extends State<MobileLoginPage> {
               ),
             ),
           ],
+        ),
         ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -44,6 +45,10 @@ class GoogleLoginWebView extends StatelessWidget {
           : WebView(
               javascriptMode: JavascriptMode.unrestricted,
               initialUrl: url,
+              // On Android, use desktop Chrome UA so Google OAuth does not block with 403 disallowed_useragent; iOS works with default.
+              userAgent: defaultTargetPlatform == TargetPlatform.android
+                  ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                  : null,
               navigationDelegate: _onNavigationRequest,
             ),
     );
