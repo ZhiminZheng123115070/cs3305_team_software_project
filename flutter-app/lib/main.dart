@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:ruoyi_app/api/login.dart';
 import 'package:ruoyi_app/api/system/user.dart';
 import 'package:ruoyi_app/routes/app_pages.dart';
+import 'package:ruoyi_app/utils/sputils.dart';
 
 void main() {
   runApp(const MyApp());
@@ -54,8 +55,31 @@ class _MyAppState extends State<MyApp> {
         final data = resp.data as Map<String, dynamic>?;
         if (data != null && data['code'] == 200) {
           Get.offAllNamed('/home');
+          return;
         }
-      } catch (_) {}
+        // Auth failed: clear token so user can retry or use another account
+        GetStorage().remove('token');
+        SPUtil().remove('token');
+        Get.offAllNamed('/login');
+        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+        Get.snackbar(
+          'Google sign-in failed',
+          data?['msg']?.toString() ?? 'Please try again or choose another account.',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 5),
+        );
+      } catch (_) {
+        GetStorage().remove('token');
+        SPUtil().remove('token');
+        Get.offAllNamed('/login');
+        if (Get.isSnackbarOpen) Get.closeAllSnackbars();
+        Get.snackbar(
+          'Google sign-in failed',
+          'Please try again or choose another account.',
+          snackPosition: SnackPosition.BOTTOM,
+          duration: const Duration(seconds: 5),
+        );
+      }
     });
   }
 

@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -9,6 +10,13 @@ import 'package:ruoyi_app/icon/ruoyi_icon.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api/login.dart';
+
+/// Resolve Google OAuth platform for redirect_uri: Android uses 10.0.2.2, iOS uses localhost.
+String _googleLoginPlatform() {
+  if (defaultTargetPlatform == TargetPlatform.android) return 'android';
+  if (defaultTargetPlatform == TargetPlatform.iOS) return 'ios';
+  return 'ios'; // desktop / other: use same as iOS (localhost)
+}
 
 class MyHome extends StatelessWidget {
   const MyHome({Key? key}) : super(key: key);
@@ -51,95 +59,8 @@ class LoginIndex extends StatefulWidget {
 }
 
 class _LoginIndexState extends State<LoginIndex> {
-  /// Captcha image base64; empty means not loaded or load failed
-  var url = "";
-  var uuid = "";
   var password = "";
   var username = "";
-  var code = "";
-  /// Whether captcha is enabled (from backend; default true so UI shows captcha if API fails)
-  var captchaEnabled = true;
-  /// Whether captcha load failed (e.g. network error)
-  var captchaLoadFailed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    getImg();
-  }
-
-  void getImg() async {
-    setState(() => captchaLoadFailed = false);
-    try {
-      var reps = await getImage();
-      var data = reps.data;
-      if (data is Map) {
-        final enabled = data["captchaEnabled"] == true;
-        setState(() {
-          captchaEnabled = enabled;
-          if (enabled && data["img"] != null && data["uuid"] != null) {
-            url = data["img"].toString();
-            uuid = data["uuid"].toString();
-          } else {
-            url = "";
-            uuid = "";
-            if (enabled) captchaLoadFailed = true;
-          }
-        });
-      } else {
-        setState(() {
-          url = "";
-          captchaLoadFailed = true;
-        });
-      }
-    } catch (e) {
-      print(e);
-      setState(() {
-        url = "";
-        captchaLoadFailed = true;
-      });
-    }
-  }
-
-  /// Captcha area: placeholder/retry when no data; safe decode when data exists to avoid Codec failed
-  Widget _buildCaptchaImage() {
-    if (url.isEmpty) {
-      return Container(
-        color: Colors.grey.shade200,
-        alignment: Alignment.center,
-        child: Text(
-          captchaLoadFailed ? "Load failed\nTap to retry" : "Loading...",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-        ),
-      );
-    }
-    try {
-      return Image.memory(
-        Base64Decoder().convert(url),
-        fit: BoxFit.fill,
-        errorBuilder: (_, __, ___) => Container(
-          color: Colors.grey.shade200,
-          alignment: Alignment.center,
-          child: Text(
-            "Invalid image\nTap to retry",
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-          ),
-        ),
-      );
-    } catch (_) {
-      return Container(
-        color: Colors.grey.shade200,
-        alignment: Alignment.center,
-        child: Text(
-          "Invalid image\nTap to retry",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -201,42 +122,6 @@ class _LoginIndexState extends State<LoginIndex> {
               const SizedBox(
                 height: 25,
               ),
-              if (captchaEnabled) ...[
-                Container(
-                    height: 50,
-                    padding: EdgeInsets.only(left: 10),
-                    decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(25.0),
-                            bottomLeft: Radius.circular(25.0)),
-                        border: Border.all(width: 1.0)),
-                    child: Flex(
-                      direction: Axis.horizontal,
-                      children: [
-                        Expanded(
-                            flex: 7,
-                            child: TextField(
-                              onChanged: (value) {
-                                code = value;
-                              },
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                icon: Icon(RuoYiIcons.code),
-                                border: InputBorder.none,
-                                hintText: "Please enter verification code",
-                              ),
-                            )),
-                        Expanded(
-                            flex: 5,
-                            child: InkWell(
-                                onTap: () => getImg(),
-                                child: _buildCaptchaImage())),
-                      ],
-                    )),
-                const SizedBox(
-                  height: 45,
-                ),
-              ],
               Container(
                   height: 50,
                   decoration: const BoxDecoration(
@@ -274,23 +159,11 @@ class _LoginIndexState extends State<LoginIndex> {
                                 ));
                         return;
                       }
-                      if (captchaEnabled && code.isEmpty) {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) =>
-                                const AlertDialog(
-                                  content: Text(
-                                    'Verification code cannot be empty!',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ));
-                        return;
-                      }
                       var requestData = {
-                        "uuid": uuid,
+                        "uuid": "",
                         "username": username.trim(),
                         "password": password.trim(),
-                        "code": captchaEnabled ? code.trim() : ""
+                        "code": ""
                       };
 
                       var data = await logInByClient(requestData);
@@ -308,7 +181,6 @@ class _LoginIndexState extends State<LoginIndex> {
                                     style: const TextStyle(color: Colors.cyan),
                                   ),
                                 ));
-                        getImg();
                       }
                     },
                     child: const Text(
@@ -326,13 +198,22 @@ class _LoginIndexState extends State<LoginIndex> {
                 child: OutlinedButton.icon(
                   onPressed: () async {
                     try {
-                      var response = await getGoogleAuthUrl();
+                      final platform = _googleLoginPlatform();
+                      var response = await getGoogleAuthUrl(platform: platform);
                       var data = response.data as Map<String, dynamic>?;
                       if (data != null &&
                           data['code'] == 200 &&
                           data['authUrl'] != null) {
                         final authUrl = data['authUrl'] as String;
-                        final uri = Uri.tryParse(authUrl);
+                        // prompt=select_account: each time open account picker so user can retry with another account after a failed login
+                        // _t: cache-bust so each tap opens a fresh auth page instead of browser showing cached error page
+                        final parsed = Uri.tryParse(authUrl);
+                        final params = Map<String, String>.from(parsed?.queryParameters ?? {});
+                        params['prompt'] = 'select_account';
+                        params['_t'] = DateTime.now().millisecondsSinceEpoch.toString();
+                        final uri = parsed != null
+                            ? parsed.replace(queryParameters: params)
+                            : Uri.tryParse(authUrl);
                         if (uri != null &&
                             await canLaunchUrl(uri)) {
                           await launchUrl(

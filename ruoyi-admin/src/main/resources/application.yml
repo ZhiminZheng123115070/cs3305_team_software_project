@@ -138,6 +138,10 @@ xss:
 # Google OAuth2 (for team6 Google login). 请勿提交真实密钥！在 application-druid.yml 或环境变量中配置。
 # 若已误传 GitHub：立即到 Google Cloud Console 重置 Client Secret，再在此处或 application-druid.yml 填新值。
 google:
-  clientId: ${GOOGLE_CLIENT_ID:your_google_client_id}
-  clientSecret: ${GOOGLE_CLIENT_SECRET:your_google_client_secret}
-  redirectUri: ${GOOGLE_REDIRECT_URI:http://localhost:1024/google-login}
+  # 请勿提交真实密钥！在 application-druid.yml 或环境变量中配置，或本地覆盖
+  clientId: YOUR_GOOGLE_CLIENT_ID
+  clientSecret: YOUR_GOOGLE_CLIENT_SECRET
+  # Single redirect URI for both iOS and Android. Add exactly this in Google Console → Authorized redirect URIs (Web client).
+  redirectUri: http://localhost:8080/oauth2/google/callback
+  # Android: same as redirectUri. On emulator you must run once: adb reverse tcp:8080 tcp:8080 (so emulator browser's localhost:8080 reaches your PC).
+  redirectUriAndroid: http://localhost:8080/oauth2/google/callback

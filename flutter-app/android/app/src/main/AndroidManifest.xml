@@ -1,5 +1,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.ruoyi_app">
+    <!-- Android 11+ (API 30+): declare intent queries so canLaunchUrl/launchUrl can open https in browser -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="http" />
+        </intent>
+    </queries>
    <application
         android:label="ruoyi_app"
         android:name="${applicationName}"
