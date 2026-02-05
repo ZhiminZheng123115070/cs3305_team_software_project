@@ -21,9 +21,15 @@ var mobileLogin = (data) async {
   return await DioRequest().httpRequest("/mobile/login", false, "post", data: data);
 };
 
-// Google login: get auth URL (then open in WebView)
-var getGoogleAuthUrl = () async {
-  return await DioRequest().httpRequest("/user/login/google/auth-url", false, "get");
+/// Google login: get auth URL. Backend uses platform to pick redirect_uri (Android: 10.0.2.2:8080, iOS: localhost:8080).
+/// [platform] should be 'android' or 'ios' from device detection; other values use iOS/localhost URI.
+var getGoogleAuthUrl = ({String? platform}) async {
+  return await DioRequest().httpRequest(
+    "/user/login/google/auth-url",
+    false,
+    "get",
+    queryParameters: platform != null && platform.isNotEmpty ? {"platform": platform} : null,
+  );
 };
 
 // Google login: exchange code for token (after user returns from Google OAuth)

@@ -22,7 +22,7 @@ rootProject.buildDir = '../build'
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
-// AGP 8+: 为没有声明 namespace 的插件（如 webview_flutter_android）自动设置 namespace（必须在 evaluationDependsOn 之前注册）
+// AGP 8+: Auto-set namespace for plugins that do not declare it (e.g. webview_flutter_android); must register before evaluationDependsOn
 subprojects { subproject ->
     subproject.afterEvaluate {
         if (subproject.plugins.hasPlugin("com.android.library")) {

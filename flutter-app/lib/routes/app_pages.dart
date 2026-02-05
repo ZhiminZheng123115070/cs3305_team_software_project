@@ -20,7 +20,6 @@ import '../pages/system/notice/index.dart';
 import '../pages/system/post/index.dart';
 import '../pages/system/user/index.dart';
 import '../pages/product/query.dart';
-import '../pages/login/mobile_login.dart';
 import '../pages/login/google_login_webview.dart';
 import 'app_routes.dart';
 
@@ -51,7 +50,6 @@ class AppPages {
       GetPage(name: AppRoutes.webView, page: () => const WebViewIndex()),
       GetPage(name: AppRoutes.googleWebView, page: () => const GoogleLoginWebView()),
     ]),
-    GetPage(name: AppRoutes.mobileLogin, page: () => const MobileLoginPage()),
     GetPage(name: AppRoutes.user, page: () => const UserIndex()),
     GetPage(name: AppRoutes.role, page: () => const RoleIndex()),
     GetPage(name: AppRoutes.menu, page: () => const MenuIndex()),

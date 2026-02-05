@@ -32,6 +32,9 @@ public class Team6GoogleLoginSystem {
     @Value("${google.redirectUri}")
     private String redirectUri;
 
+    @Value("${google.redirectUriAndroid:${google.redirectUri}}")
+    private String redirectUriAndroid;
+
     /**
      * Google login callback: exchange code for token (JSON response).
      */
@@ -50,18 +53,21 @@ public class Team6GoogleLoginSystem {
     }
 
     /**
-     * Get Google auth URL
+     * Get Google auth URL. Client should pass platform so we use the correct redirect_uri:
+     * - android: redirectUriAndroid (10.0.2.2:8080 so emulator browser can reach host)
+     * - ios or others: redirectUri (localhost:8080)
      */
     @GetMapping("/user/login/google/auth-url")
-    public AjaxResult getAuthUrl() {
+    public AjaxResult getAuthUrl(@RequestParam(value = "platform", required = false) String platform) {
         try {
             String state = "google_login_" + System.currentTimeMillis();
             String scope = "openid email profile";
-            // prompt=select_account: show account picker each time so user can switch account
+            boolean isAndroid = platform != null && "android".equalsIgnoreCase(platform.trim());
+            String redirect = isAndroid ? redirectUriAndroid : redirectUri;
             String authUrl = String.format(
                 "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s&prompt=select_account&hl=en",
                 clientId,
-                java.net.URLEncoder.encode(redirectUri, "UTF-8"),
+                java.net.URLEncoder.encode(redirect, "UTF-8"),
                 scope,
                 state
             );

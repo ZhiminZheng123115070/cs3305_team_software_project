@@ -21,8 +21,6 @@ abstract class AppRoutes {
 
   static const googleWebView = "/googleWebView";
 
-  static const mobileLogin = "/mobileLogin";
-
   static const user = "/system/user/index";
 
   static const role = "/system/role/index";
