@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:ruoyi_app/pages/work/index.dart';
 
+import 'cart/index.dart';
 import 'home/index.dart';
 import 'mine/index.dart';
 
+/// Bottom dock: Home, Cart, Mine (fixed first-level menus).
 class PageIndex extends StatefulWidget {
   const PageIndex({Key? key}) : super(key: key);
 
@@ -16,7 +17,7 @@ class _PageIndexState extends State<PageIndex> {
 
   final List _pageList = [
     const HomeIndex(),
-    const WorkIndex(),
+    const CartIndex(),
     const MineIndex(),
   ];
 
@@ -33,7 +34,7 @@ class _PageIndexState extends State<PageIndex> {
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_view), label: "Workbench"),
+          BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "Cart"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Mine"),
         ],
       ),

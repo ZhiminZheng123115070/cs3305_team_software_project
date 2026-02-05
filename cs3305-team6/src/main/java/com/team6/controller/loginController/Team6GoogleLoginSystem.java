@@ -59,7 +59,7 @@ public class Team6GoogleLoginSystem {
             String scope = "openid email profile";
             // prompt=select_account: show account picker each time so user can switch account
             String authUrl = String.format(
-                "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s&prompt=select_account",
+                "https://accounts.google.com/o/oauth2/v2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s&prompt=select_account&hl=en",
                 clientId,
                 java.net.URLEncoder.encode(redirectUri, "UTF-8"),
                 scope,

@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -58,6 +57,8 @@ class _LoginIndexState extends State<LoginIndex> {
   var password = "";
   var username = "";
   var code = "";
+  /// Whether captcha is enabled (from backend; default true so UI shows captcha if API fails)
+  var captchaEnabled = true;
   /// Whether captcha load failed (e.g. network error)
   var captchaLoadFailed = false;
 
@@ -72,10 +73,18 @@ class _LoginIndexState extends State<LoginIndex> {
     try {
       var reps = await getImage();
       var data = reps.data;
-      if (data is Map && data["img"] != null && data["uuid"] != null) {
+      if (data is Map) {
+        final enabled = data["captchaEnabled"] == true;
         setState(() {
-          url = data["img"].toString();
-          uuid = data["uuid"].toString();
+          captchaEnabled = enabled;
+          if (enabled && data["img"] != null && data["uuid"] != null) {
+            url = data["img"].toString();
+            uuid = data["uuid"].toString();
+          } else {
+            url = "";
+            uuid = "";
+            if (enabled) captchaLoadFailed = true;
+          }
         });
       } else {
         setState(() {
@@ -192,40 +201,42 @@ class _LoginIndexState extends State<LoginIndex> {
               const SizedBox(
                 height: 25,
               ),
-              Container(
-                  height: 50,
-                  padding: EdgeInsets.only(left: 10),
-                  decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(25.0),
-                          bottomLeft: Radius.circular(25.0)),
-                      border: Border.all(width: 1.0)),
-                  child: Flex(
-                    direction: Axis.horizontal,
-                    children: [
-                      Expanded(
-                          flex: 7,
-                          child: TextField(
-                            onChanged: (value) {
-                              code = value;
-                            },
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              icon: Icon(RuoYiIcons.code),
-                              border: InputBorder.none,
-                              hintText: "Please enter verification code",
-                            ),
-                          )),
-                      Expanded(
-                          flex: 5,
-                          child: InkWell(
-                              onTap: () => getImg(),
-                              child: _buildCaptchaImage())),
-                    ],
-                  )),
-              const SizedBox(
-                height: 45,
-              ),
+              if (captchaEnabled) ...[
+                Container(
+                    height: 50,
+                    padding: EdgeInsets.only(left: 10),
+                    decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(25.0),
+                            bottomLeft: Radius.circular(25.0)),
+                        border: Border.all(width: 1.0)),
+                    child: Flex(
+                      direction: Axis.horizontal,
+                      children: [
+                        Expanded(
+                            flex: 7,
+                            child: TextField(
+                              onChanged: (value) {
+                                code = value;
+                              },
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                icon: Icon(RuoYiIcons.code),
+                                border: InputBorder.none,
+                                hintText: "Please enter verification code",
+                              ),
+                            )),
+                        Expanded(
+                            flex: 5,
+                            child: InkWell(
+                                onTap: () => getImg(),
+                                child: _buildCaptchaImage())),
+                      ],
+                    )),
+                const SizedBox(
+                  height: 45,
+                ),
+              ],
               Container(
                   height: 50,
                   decoration: const BoxDecoration(
@@ -263,7 +274,7 @@ class _LoginIndexState extends State<LoginIndex> {
                                 ));
                         return;
                       }
-                      if (code.isEmpty) {
+                      if (captchaEnabled && code.isEmpty) {
                         showDialog(
                             context: context,
                             builder: (BuildContext context) =>
@@ -279,7 +290,7 @@ class _LoginIndexState extends State<LoginIndex> {
                         "uuid": uuid,
                         "username": username.trim(),
                         "password": password.trim(),
-                        "code": code.trim()
+                        "code": captchaEnabled ? code.trim() : ""
                       };
 
                       var data = await logInByClient(requestData);
@@ -391,45 +402,6 @@ class _LoginIndexState extends State<LoginIndex> {
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 10,
-              ),
-              Center(
-                child: RichText(
-                  text: TextSpan(
-                      text: "By logging in, you agree to the ",
-                      style: const TextStyle(color: Colors.black),
-                      children: [
-                        TextSpan(
-                          text: "User Agreement",
-                          style: const TextStyle(color: Colors.red),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Get.toNamed("/login/webView", arguments: {
-                                "title": "User Service Agreement",
-                                "url": "https://ruoyi.vip/protocol.html"
-                              });
-                            },
-                        ),
-                        TextSpan(
-                          text: " and ",
-                          style: const TextStyle(color: Colors.black),
-                        ),
-                        TextSpan(
-                          text: "Privacy Policy",
-                          style:
-                              TextStyle(color: Theme.of(context).colorScheme.secondary),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              Get.toNamed("/login/webView", arguments: {
-                                "title": "Privacy Policy",
-                                "url": "https://ruoyi.vip/protocol.html"
-                              });
-                            },
-                        ),
-                      ]),
-                ),
-              ),
             ],
           ),
         ),
@@ -443,12 +415,9 @@ class LogInIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Image.asset(
-        "static/logo.png",
-      ),
-      title: const Text(
-        "RuoYi Mobile Login",
+    return const Center(
+      child: Text(
+        "Password Login",
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w300,

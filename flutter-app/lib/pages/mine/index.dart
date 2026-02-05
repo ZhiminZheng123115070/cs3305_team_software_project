@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:like_button/like_button.dart';
-import 'package:ruoyi_app/icon/ruoyi_icon.dart';
 
 import '../../api/system/user.dart';
 
@@ -79,97 +77,10 @@ class _MineIndexState extends State<MineIndex> {
                       ),
                     ),
                     Align(
-                      alignment: const FractionalOffset(0.5, 0),
-                      child: Container(
-                        height: 120,
-                        margin: const EdgeInsets.fromLTRB(15, 120, 15, 0),
-                        decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(10.0))),
-                        child: GridView.count(
-                          crossAxisCount: 4,
-                          crossAxisSpacing: 10.0,
-                          padding: const EdgeInsets.all(30.0),
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) =>
-                                        const AlertDialog(
-                                          content: Text(
-                                            "QQ Group: 133713780",
-                                            style:
-                                                TextStyle(color: Colors.cyan),
-                                          ),
-                                        ));
-                              },
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  children: const [
-                                    Icon(
-                                      Icons.supervisor_account_rounded,
-                                      size: 40,
-                                      color: Colors.redAccent,
-                                    ),
-                                    Text("User Community"),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SingleChildScrollView(
-                              child: Column(
-                                children: const [
-                                  Icon(
-                                    RuoYiIcons.service,
-                                    size: 40,
-                                    color: Colors.blue,
-                                  ),
-                                  Text("Online Support"),
-                                ],
-                              ),
-                            ),
-                            SingleChildScrollView(
-                              child: Column(
-                                children: const [
-                                  Icon(
-                                    RuoYiIcons.community,
-                                    size: 40,
-                                  ),
-                                  Text("Feedback Community"),
-                                ],
-                              ),
-                            ),
-                            SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  LikeButton(
-                                    likeBuilder: (bool isLiked) {
-                                      return const Icon(
-                                        Icons.thumb_up_alt,
-                                        size: 40,
-                                        color: Colors.green,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(
-                                    height: 10,
-                                  ),
-                                  const Text("Like Us"),
-                                ],
-                              ),
-                            ),
-                            // const LikeButton()
-                          ],
-                        ),
-                      ),
-                    ),
-                    Align(
                       alignment: const FractionalOffset(0.78, 0.29),
                       child: Container(
                         height: 280,
-                        margin: const EdgeInsets.fromLTRB(15, 250, 15, 0),
+                        margin: const EdgeInsets.fromLTRB(15, 160, 15, 0),
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.all(Radius.circular(10.0)),
@@ -190,24 +101,6 @@ class _MineIndexState extends State<MineIndex> {
                                 ),
                                 title: Text(
                                   "Edit Profile",
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                                trailing: Icon(Icons.keyboard_arrow_right),
-                              ),
-                              Divider(
-                                thickness: 1,
-                              ),
-                              ListTile(
-                                onTap: () async {
-                                  ///TODO Navigate to FAQ page
-                                  await Get.toNamed("/home/help");
-                                },
-                                leading: Icon(
-                                  Icons.help_outline,
-                                  color: Colors.blue,
-                                ),
-                                title: Text(
-                                  "FAQ",
                                   style: TextStyle(fontSize: 16),
                                 ),
                                 trailing: Icon(Icons.keyboard_arrow_right),

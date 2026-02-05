@@ -69,6 +69,7 @@ create table sys_user (
 -- ----------------------------
 insert into sys_user values(1,  103, 'admin', 'RuoYi', '00', 'ry@163.com', '15888888888', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), sysdate(), 'admin', sysdate(), '', null, 'Admin User');
 insert into sys_user values(2,  105, 'ry',    'RuoYi', '00', 'ry@qq.com',  '15666666666', '1', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '127.0.0.1', sysdate(), sysdate(), 'admin', sysdate(), '', null, 'Tester');
+insert into sys_user values(3,  105, 'member','Member','00', 'member@test.com', '15777777777', '0', '', '$2a$10$7JB720yubVSZvUI0rEqK/.VqGOZTH.ulu33dHOiBE8ByOhJIrdAu2', '0', '0', '', sysdate(), sysdate(), 'admin', sysdate(), '', null, 'Member user: Home/Cart/Mine only');
 
 
 -- ----------------------------
@@ -125,6 +126,7 @@ create table sys_role (
 -- ----------------------------
 insert into sys_role values('1', 'Super Admin',  'admin',  1, 1, 1, 1, '0', '0', 'admin', sysdate(), '', null, 'Super Administrator');
 insert into sys_role values('2', 'Common Role',  'common', 2, 2, 1, 1, '0', '0', 'admin', sysdate(), '', null, 'Common Role');
+insert into sys_role values('3', 'Member',       'member', 3, 1, 1, 1, '0', '0', 'admin', sysdate(), '', null, 'Member role: Home, Cart, Mine only');
 
 -- ----------------------------
 -- 5. Menu Table
@@ -183,6 +185,11 @@ insert into sys_menu values('115', 'Form Builder',   '3', '1', 'build',      'to
 insert into sys_menu values('116', 'Code Generator', '3', '2', 'gen',        'tool/gen/index',        '', '', 1, 0, 'C', '0', '0', 'tool:gen:list',        'code',          'admin', sysdate(), '', null, 'Code Generator Menu');
 insert into sys_menu values('117', 'API Swagger',    '3', '3', 'swagger',    'tool/swagger/index',    '', '', 1, 0, 'C', '0', '0', 'tool:swagger:list',    'swagger',       'admin', sysdate(), '', null, 'Swagger API Menu');
 
+-- Level 1 Menus for Member (Home, Cart, Mine) – fixed first-level tabs
+insert into sys_menu values('5', 'Home',  '0', '10', 'home', null, '', '', 1, 0, 'M', '0', '0', '', 'home',   'admin', sysdate(), '', null, 'Home tab');
+insert into sys_menu values('6', 'Cart',  '0', '11', 'cart', null, '', '', 1, 0, 'M', '0', '0', 'cart:product:search', 'shopping', 'admin', sysdate(), '', null, 'Cart tab (barcode search)');
+insert into sys_menu values('7', 'Mine',  '0', '12', 'mine', null, '', '', 1, 0, 'M', '0', '0', '', 'user',   'admin', sysdate(), '', null, 'Mine tab');
+
 -- Level 3 Menus
 insert into sys_menu values('500', 'Operation Log', '108', '1', 'operlog',    'monitor/operlog/index',    '', '', 1, 0, 'C', '0', '0', 'monitor:operlog:list', 'form',          'admin', sysdate(), '', null, 'Operation Log Menu');
 insert into sys_menu values('501', 'Login Log',     '108', '2', 'logininfor', 'monitor/logininfor/index', '', '', 1, 0, 'C', '0', '0', 'monitor:logininfor:list', 'logininfor',  'admin', sysdate(), '', null, 'Login Log Menu');
@@ -208,10 +215,12 @@ CREATE TABLE sys_user_role (
 
 INSERT INTO sys_user_role VALUES (1, 1);
 INSERT INTO sys_user_role VALUES (2, 2);
+INSERT INTO sys_user_role VALUES (3, 3);
 
 -- Initial Data
 insert into sys_user_role values ('1', '1');
 insert into sys_user_role values ('2', '2');
+insert into sys_user_role values ('3', '3');
 
 
 -- ----------------------------
@@ -226,6 +235,11 @@ create table sys_role_menu (
 
 -- Mapping Common Role (ID: 2) to various permissions
 insert into sys_role_menu values ('2', '1'), ('2', '2'), ('2', '3'), ('2', '4'), ('2', '100'), ('2', '101'), ('2', '102'), ('2', '103'), ('2', '104'), ('2', '105'), ('2', '106'), ('2', '107'), ('2', '108'), ('2', '109'), ('2', '110'), ('2', '111'), ('2', '112'), ('2', '113'), ('2', '114'), ('2', '115'), ('2', '116'), ('2', '117'), ('2', '500'), ('2', '501'), ('2', '1000'), ('2', '1001'), ('2', '1002'), ('2', '1003'), ('2', '1004'), ('2', '1005'), ('2', '1006'), ('2', '1007'), ('2', '1008'), ('2', '1009'), ('2', '1010'), ('2', '1011'), ('2', '1012'), ('2', '1013'), ('2', '1014'), ('2', '1015'), ('2', '1016'), ('2', '1017'), ('2', '1018'), ('2', '1019'), ('2', '1020'), ('2', '1021'), ('2', '1022'), ('2', '1023'), ('2', '1024'), ('2', '1025'), ('2', '1026'), ('2', '1027'), ('2', '1028'), ('2', '1029'), ('2', '1030'), ('2', '1031'), ('2', '1032'), ('2', '1033'), ('2', '1034'), ('2', '1035'), ('2', '1036'), ('2', '1037'), ('2', '1038'), ('2', '1039'), ('2', '1040'), ('2', '1041'), ('2', '1042'), ('2', '1043'), ('2', '1044'), ('2', '1045'), ('2', '1046'), ('2', '1047'), ('2', '1048'), ('2', '1049'), ('2', '1050'), ('2', '1051'), ('2', '1052'), ('2', '1053'), ('2', '1054'), ('2', '1055'), ('2', '1056'), ('2', '1057'), ('2', '1058'), ('2', '1059'), ('2', '1060');
+-- Mapping Member Role (ID: 3) to Home, Cart, Mine only
+insert into sys_role_menu values ('3', '5'), ('3', '6'), ('3', '7');
+-- Give Admin (1) and Common (2) Home, Cart, Mine so all roles can use Cart search / app tabs
+insert into sys_role_menu values ('1', '5'), ('1', '6'), ('1', '7');
+insert into sys_role_menu values ('2', '5'), ('2', '6'), ('2', '7');
 
 
 -- ----------------------------
@@ -239,6 +253,7 @@ create table sys_role_dept (
 ) engine=innodb comment = 'Role and Dept Link Table';
 
 insert into sys_role_dept values ('2', '100'), ('2', '101'), ('2', '105');
+insert into sys_role_dept values ('3', '105');
 
 
 -- ----------------------------
@@ -390,7 +405,7 @@ create table sys_config (
 insert into sys_config values(1, 'Main Frame Skin', 'sys.index.skinName', 'skin-blue', 'Y', 'admin', sysdate(), '', null, 'Blue: skin-blue, Green: skin-green, Purple: skin-purple, Red: skin-red, Yellow: skin-yellow' );
 insert into sys_config values(2, 'User Init Password', 'sys.user.initPassword', '123456', 'Y', 'admin', sysdate(), '', null, 'Initial password 123456' );
 insert into sys_config values(3, 'Sidebar Theme', 'sys.index.sideTheme', 'theme-dark', 'Y', 'admin', sysdate(), '', null, 'Dark: theme-dark, Light: theme-light' );
-insert into sys_config values(4, 'Captcha Enabled', 'sys.account.captchaEnabled', 'true', 'Y', 'admin', sysdate(), '', null, 'Whether to enable captcha');
+insert into sys_config values(4, 'Captcha Enabled', 'sys.account.captchaEnabled', 'false', 'Y', 'admin', sysdate(), '', null, 'Whether to enable captcha');
 
 
 -- ----------------------------
