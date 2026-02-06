@@ -45,8 +45,10 @@ user:
     # Password Lock Time (default 10 minutes)
     lockTime: 10
 
-# Spring Configuration
+# Spring Configuration (optional: create application-google-local.yml from .example for Google OAuth)
 spring:
+  config:
+    import: optional:classpath:application-google-local.yml
   # Resource Information
   messages:
     # Internationalization Resource File Path
