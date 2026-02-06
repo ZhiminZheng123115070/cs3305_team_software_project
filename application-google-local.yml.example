@@ -1,0 +1,8 @@
+# Google OAuth – local config (do not commit)
+# 1. Copy this file to: application-google-local.yml (in project root, same folder as pom.xml)
+# 2. Fill in your Client ID and Client Secret from Google Cloud Console
+# 3. Restart the backend; this file overrides the placeholders and fixes "Missing required parameter: client_id"
+
+google:
+  clientId: YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+  clientSecret: YOUR_GOOGLE_CLIENT_SECRET
