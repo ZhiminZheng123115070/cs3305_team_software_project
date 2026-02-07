@@ -1,27 +1,21 @@
-package com.team6.request;
+package com.team6.response;
+
+import java.util.Date;
 
 /**
- * Product Search Request
- * Only used for query operations
  * @author zhimin
- * 2026/1/24 11:39
+ * 2026/2/6 18:32
  */
-public class ProductSearchRequest {
-    /**
-     * Product barcode for search
-     */
-    private Long userId;
-
-
+public class CartItemResponse {
+    private Long cartId;
+    private Integer quantity;
     private Long productId;
     private String barcode;
     private String name;
     private String brand;
     private String imageUrl;
-    /** Price in smallest unit (e.g. cents). 12.99 EUR → 1299 */
     private Long price;
     private String currency;
-    /** Per 100g, scaled by 100. 5.25g → 525 */
     private Long energyKcal;
     private Long fat;
     private Long saturatedFat;
@@ -31,17 +25,22 @@ public class ProductSearchRequest {
     private Long proteins;
     private Long salt;
     private String nutriScore;
-    private String source;
-    private String sourceUrl;
-    private String productStatus;
+    private Date updatedAt;
 
-
-    public Long getUserId() {
-        return userId;
+    public Long getCartId() {
+        return cartId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
+    public void setCartId(Long cartId) {
+        this.cartId = cartId;
+    }
+
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
     }
 
     public Long getProductId() {
@@ -172,27 +171,11 @@ public class ProductSearchRequest {
         this.nutriScore = nutriScore;
     }
 
-    public String getSource() {
-        return source;
+    public Date getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setSource(String source) {
-        this.source = source;
-    }
-
-    public String getSourceUrl() {
-        return sourceUrl;
-    }
-
-    public void setSourceUrl(String sourceUrl) {
-        this.sourceUrl = sourceUrl;
-    }
-
-    public String getProductStatus() {
-        return productStatus;
-    }
-
-    public void setProductStatus(String productStatus) {
-        this.productStatus = productStatus;
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

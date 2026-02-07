@@ -41,11 +41,7 @@ CREATE TABLE app_products (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-  UNIQUE KEY uk_products_barcode (barcode),
-  INDEX idx_products_name (name),
-  INDEX idx_products_brand (brand),
-  INDEX idx_products_price (price),
-  INDEX idx_products_nutriscore (nutri_score)
+  UNIQUE KEY uk_products_barcode (barcode)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Products cache (Open Food Facts + MVP price)';
 
@@ -134,18 +130,9 @@ DROP TABLE IF EXISTS app_scan_logs;
 
 CREATE TABLE app_scan_logs (
   id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'Scan log ID',
-  user_id BIGINT NOT NULL COMMENT 'FK -> sys_user.user_id',
-  barcode VARCHAR(32) NOT NULL COMMENT 'FK -> app_products.barcode',
-  scanned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Time of scan',
-
-  CONSTRAINT fk_scan_user
-    FOREIGN KEY (user_id) REFERENCES sys_user(user_id),
-
-  CONSTRAINT fk_scan_product
-    FOREIGN KEY (barcode) REFERENCES app_products(barcode),
-
-  INDEX idx_scan_user_time (user_id, scanned_at),
-  INDEX idx_scan_barcode_time (barcode, scanned_at)
+  user_id BIGINT NOT NULL COMMENT '-> sys_user.user_id',
+  barcode VARCHAR(32) NOT NULL COMMENT '-> app_products.barcode',
+  scanned_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Time of scan'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Scan history';
 
@@ -153,26 +140,18 @@ CREATE TABLE app_scan_logs (
 
 -- 3) Temporary cart items (MVP cart)
 
-DROP TABLE IF EXISTS app_cart_items;
+DROP TABLE IF EXISTS app_cart;
 
-CREATE TABLE app_cart_items (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE app_cart(
+  cart_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT NOT NULL,
-  barcode VARCHAR(32) NOT NULL,
-  quantity INT NOT NULL DEFAULT 1,
-  added_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	product_id BIGINT NOT NULL,
+	quantity INT NOT NULL DEFAULT 1,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-  CONSTRAINT fk_cart_user
-    FOREIGN KEY (user_id) REFERENCES sys_user(user_id),
-
-  CONSTRAINT fk_cart_product
-    FOREIGN KEY (barcode) REFERENCES app_products(barcode),
-
-  UNIQUE KEY uq_cart_user_product (user_id, barcode),
-  INDEX idx_cart_user (user_id),
-  INDEX idx_cart_added (added_at)
+  UNIQUE KEY uq_cart_user_product (user_id, product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='Temporary cart items (MVP)';
+  COMMENT='Cart Table';
 
 
 -- 4) Purchases (header) - purchase history sessions
@@ -185,12 +164,7 @@ CREATE TABLE app_purchases (
   purchased_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
   total_price DECIMAL(10,2) DEFAULT NULL COMMENT 'Optional cached total',
-  currency CHAR(3) NOT NULL DEFAULT 'EUR',
-
-  CONSTRAINT fk_purchase_user
-    FOREIGN KEY (user_id) REFERENCES sys_user(user_id),
-
-  INDEX idx_purchases_user_time (user_id, purchased_at)
+  currency CHAR(3) NOT NULL DEFAULT 'EUR'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Purchase records (headers)';
 
@@ -209,17 +183,7 @@ CREATE TABLE app_purchase_items (
 
   -- Snapshot the price at purchase time (so history stays correct)
   unit_price DECIMAL(7,2) DEFAULT NULL,
-  line_total DECIMAL(9,2) DEFAULT NULL,
-
-  CONSTRAINT fk_purchaseitems_purchase
-    FOREIGN KEY (purchase_id) REFERENCES app_purchases(id)
-    ON DELETE CASCADE,
-
-  CONSTRAINT fk_purchaseitems_product
-    FOREIGN KEY (barcode) REFERENCES app_products(barcode),
-
-  INDEX idx_purchaseitems_purchase (purchase_id),
-  INDEX idx_purchaseitems_barcode (barcode)
+  line_total DECIMAL(9,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Purchase line items';
 
@@ -233,3 +197,26 @@ CREATE TABLE app_unknown_barcodes (
   seen_count INT NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Unknown barcodes (OFF not found cache)';
+	
+DROP TABLE IF EXISTS app_user;
+
+CREATE TABLE app_user (
+  user_id           BIGINT       NOT NULL PRIMARY KEY COMMENT '= sys_user.user_id',
+  display_name      VARCHAR(64)  DEFAULT NULL COMMENT 'Display name (Mine screen)',
+  gender            VARCHAR(8)   DEFAULT NULL COMMENT 'Male / Female / Other',
+  age               TINYINT UNSIGNED DEFAULT NULL COMMENT 'Age',
+  weight_kg         DECIMAL(5,2) DEFAULT NULL COMMENT 'Weight in kg',
+  height_m          DECIMAL(3,2) DEFAULT NULL COMMENT 'Height in meters',
+  bmi               DECIMAL(4,2) DEFAULT NULL COMMENT 'BMI = weight_kg / height_m²',
+  avatar_url        VARCHAR(512) DEFAULT NULL COMMENT 'Avatar URL',
+
+  daily_calorie_goal INT UNSIGNED DEFAULT 2000 COMMENT 'Daily calorie goal (kcal)',
+
+  bind_phone        VARCHAR(20)  DEFAULT NULL COMMENT 'Bound phone number',
+  bind_google       VARCHAR(128) DEFAULT NULL COMMENT 'Bound Google unique id',
+
+  created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  CONSTRAINT fk_app_user_sys_user FOREIGN KEY (user_id) REFERENCES sys_user(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='App user profile (1:1 with sys_user)';
