@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team6.mapper.CartMapper">
+
+    <resultMap id="cartResultMap" type="com.team6.pojo.Cart">
+        <result column="cart_id" property="cartId"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="quantity" property="quantity"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+    <insert id="addCart" useGeneratedKeys="true" keyProperty="cartId">
+        insert into app_cart(user_id, product_id, quantity)
+        values(#{userId}, #{productId}, #{quantity})
+        on duplicate key update quantity = values(quantity)
+    </insert>
+
+    <update id="updateCart">
+        update app_cart
+        <set>
+            <if test="quantity != null">
+                quantity=#{quantity}
+            </if>
+        </set>
+        <where>
+            cart_id=#{cartId}
+        </where>
+    </update>
+    <delete id="deleteCart">
+
+        delete from app_cart
+        <where>
+            cart_id=#{cartId}
+        </where>
+    </delete>
+    <select id="getCartList" resultType="com.team6.response.CartItemResponse">
+        select
+            c.cart_id AS cartId,
+            c.quantity,
+            c.updated_at AS updatedAt,
+            p.product_id AS productId,
+            p.barcode,
+            p.name,
+            p.brand,
+            p.image_url AS imageUrl,
+            p.price,
+            p.currency,
+            p.energy_kcal AS energyKcal,
+            p.fat,
+            p.saturated_fat AS saturatedFat,
+            p.carbohydrates,
+            p.sugars,
+            p.fiber,
+            p.proteins,
+            p.salt,
+            p.nutri_score AS nutriScore
+        from app_cart c
+        inner join app_products p on c.product_id = p.product_id
+        where c.user_id=#{userId}
+        order by ${orderBy}
+    </select>
+
+
+</mapper>
