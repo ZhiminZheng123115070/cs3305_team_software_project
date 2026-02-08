@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ruoyi_app/api/product.dart';
+import 'package:ruoyi_app/models/cart_item_model.dart';
 import 'package:ruoyi_app/models/product_model.dart';
 
 class ProductQueryPage extends StatefulWidget {
@@ -207,7 +208,7 @@ class _ProductQueryPageState extends State<ProductQueryPage> {
               const SizedBox(height: 12),
               _buildInfoRow(
                 'Price:',
-                '${_product!.price} ${_product!.currency ?? ''}'.trim(),
+                '${formatPrice(_product!.price)} ${_product!.currency ?? ''}'.trim(),
               ),
             ],
             if (_product!.nutriScore != null &&

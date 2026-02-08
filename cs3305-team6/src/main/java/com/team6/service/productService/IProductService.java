@@ -6,6 +6,7 @@ import com.team6.request.CartListRequest;
 import com.team6.request.ProductSearchRequest;
 import com.team6.response.CartItemResponse;
 import com.team6.response.ProductSearchResponse;
+import com.team6.pojo.Order;
 
 import java.util.List;
 
@@ -41,5 +42,7 @@ public interface IProductService {
 
 
     public int addOrder(Long cartId);
+
+    List<Order> getOrderList();
 
 }

@@ -5,6 +5,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.service.productService.IProductService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,5 +30,9 @@ public class productOrderController {
         return AjaxResult.error("Update cart in order failure");
     }
 
+    @GetMapping("/list")
+    public AjaxResult getList(){
+        return AjaxResult.success(productService.getOrderList());
+    }
 
 }

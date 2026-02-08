@@ -119,51 +119,56 @@ class DioRequest {
     data,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
-    Options? options,
+    Options? extraOptions,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    Options options;
+    Options opts;
     if (isToken) {
       if (!GetStorage().hasData("token")) {
         var token = SPUtil().get("token");
         if (token != null) {
           GetStorage().write("token", token);
         } else {
-          ///TODO If it's also empty, clear all information and navigate to login page logic
           GetStorage().remove("token");
           SPUtil().remove("token");
           Get.offNamed("/login");
         }
       }
-      options = Options(
+      opts = Options(
         headers: {
-          "content-type": "application/json; charset=utf-8",
+          "content-type": extraOptions?.contentType ?? "application/json; charset=utf-8",
           "Authorization": "Bearer ${GetStorage().read("token")}",
         },
         method: method,
       );
     } else {
-      options = Options(
-        headers: {"content-type": "application/json; charset=utf-8"},
+      opts = Options(
+        headers: {"content-type": extraOptions?.contentType ?? "application/json; charset=utf-8"},
         method: method,
       );
     }
     switch (method) {
       case "get":
         return await dio.request(path,
-            queryParameters: queryParameters, options: options);
+            queryParameters: queryParameters, options: opts);
       case "post":
-        return await dio.request(path, data: data, options: options);
+        return await dio.request(path,
+            data: data,
+            queryParameters: queryParameters,
+            options: opts);
       case "put":
         return await dio.request(
           path,
-          queryParameters: data,
+          queryParameters: queryParameters ?? data,
           data: data,
-          options: options,
+          options: opts,
         );
       case "delete":
-        return await dio.request(path, data: data, options: options);
+        return await dio.request(path,
+            data: data,
+            queryParameters: queryParameters,
+            options: opts);
     }
   }
 }

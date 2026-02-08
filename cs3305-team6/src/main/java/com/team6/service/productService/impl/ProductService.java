@@ -138,4 +138,10 @@ public class ProductService implements IProductService {
         Order order = Order.fromCartItem(cart, userId);
         return orderMapper.addOrder(order);
     }
+
+    @Override
+    public List<Order> getOrderList() {
+        Long userId = SecurityUtils.getUserId();
+        return orderMapper.getOrderList(userId);
+    }
 }
