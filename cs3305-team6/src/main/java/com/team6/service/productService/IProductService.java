@@ -30,4 +30,16 @@ public interface IProductService {
     public int deleteCart(Long cartId);
 
     public List<CartItemResponse> getCartPageList(CartListRequest request);
+
+    /**
+     * Get one cart item by cart_id (must belong to current user).
+     * @param cartId cart_id
+     * @return CartItemResponse or null if not found
+     */
+    CartItemResponse getCartItemByCartId(Long cartId);
+
+
+
+    public int addOrder(Long cartId);
+
 }

@@ -3,7 +3,7 @@ package com.team6.controller.productController;
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.request.CartListRequest;
-import com.team6.request.ProductSearchRequest;
+import com.team6.response.CartItemResponse;
 import com.team6.service.productService.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -47,9 +47,17 @@ public class productCartController {
         return AjaxResult.error("Delete product in Cart failure");
     }
 
-
     @GetMapping("/list")
     public AjaxResult getList(@Validated CartListRequest request){
         return AjaxResult.success(productService.getCartPageList(request));
+    }
+
+    @GetMapping("/detail")
+    public AjaxResult getDetail(@RequestParam("cart_id") Long cartId){
+        CartItemResponse item = productService.getCartItemByCartId(cartId);
+        if (item == null) {
+            return AjaxResult.error("Cart item not found or not yours");
+        }
+        return AjaxResult.success(item);
     }
 }

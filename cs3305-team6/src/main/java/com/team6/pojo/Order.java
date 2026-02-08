@@ -1,22 +1,27 @@
-package com.team6.response;
+package com.team6.pojo;
+
+import com.team6.response.CartItemResponse;
 
 import java.math.BigDecimal;
-import java.util.Date;
+import java.time.LocalDateTime;
 
 /**
  * @author zhimin
- * 2026/2/6 18:32
+ * 2026/2/8 16:22
  */
-public class CartItemResponse {
-    private Long cartId;
-    private Integer quantity;
+public class Order {
+    private Long orderId;
+    private Long userId;
     private Long productId;
-    private String barcode;
+
     private String name;
     private String brand;
     private String imageUrl;
-    private BigDecimal price;
+    private Integer quantity;
+    private BigDecimal unitPrice;
+    private BigDecimal lineTotal;
     private String currency;
+
     private BigDecimal energyKcal;
     private BigDecimal fat;
     private BigDecimal saturatedFat;
@@ -25,23 +30,51 @@ public class CartItemResponse {
     private BigDecimal fiber;
     private BigDecimal proteins;
     private BigDecimal salt;
-    private String nutriScore;
-    private Date updatedAt;
 
-    public Long getCartId() {
-        return cartId;
+    private LocalDateTime createdAt;
+
+    /**
+     * Build Order from cart item and userId; lineTotal = unitPrice * quantity.
+     */
+    public static Order fromCartItem(CartItemResponse cart, Long userId) {
+        Order order = new Order();
+        order.setUserId(userId);
+        order.setProductId(cart.getProductId());
+        order.setName(cart.getName());
+        order.setBrand(cart.getBrand());
+        order.setImageUrl(cart.getImageUrl());
+        order.setQuantity(cart.getQuantity());
+        order.setUnitPrice(cart.getPrice());
+        order.setLineTotal(cart.getPrice() != null && cart.getQuantity() != null
+                ? cart.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity()))
+                : null);
+        order.setCurrency(cart.getCurrency());
+        order.setEnergyKcal(cart.getEnergyKcal());
+        order.setFat(cart.getFat());
+        order.setSaturatedFat(cart.getSaturatedFat());
+        order.setCarbohydrates(cart.getCarbohydrates());
+        order.setSugars(cart.getSugars());
+        order.setFiber(cart.getFiber());
+        order.setProteins(cart.getProteins());
+        order.setSalt(cart.getSalt());
+        order.setCreatedAt(LocalDateTime.now());
+        return order;
     }
 
-    public void setCartId(Long cartId) {
-        this.cartId = cartId;
+    public Long getOrderId() {
+        return orderId;
     }
 
-    public Integer getQuantity() {
-        return quantity;
+    public void setOrderId(Long orderId) {
+        this.orderId = orderId;
     }
 
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public Long getProductId() {
@@ -50,14 +83,6 @@ public class CartItemResponse {
 
     public void setProductId(Long productId) {
         this.productId = productId;
-    }
-
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
     }
 
     public String getName() {
@@ -84,12 +109,28 @@ public class CartItemResponse {
         this.imageUrl = imageUrl;
     }
 
-    public BigDecimal getPrice() {
-        return price;
+    public Integer getQuantity() {
+        return quantity;
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getUnitPrice() {
+        return unitPrice;
+    }
+
+    public void setUnitPrice(BigDecimal unitPrice) {
+        this.unitPrice = unitPrice;
+    }
+
+    public BigDecimal getLineTotal() {
+        return lineTotal;
+    }
+
+    public void setLineTotal(BigDecimal lineTotal) {
+        this.lineTotal = lineTotal;
     }
 
     public String getCurrency() {
@@ -164,19 +205,11 @@ public class CartItemResponse {
         this.salt = salt;
     }
 
-    public String getNutriScore() {
-        return nutriScore;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setNutriScore(String nutriScore) {
-        this.nutriScore = nutriScore;
-    }
-
-    public Date getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 }
