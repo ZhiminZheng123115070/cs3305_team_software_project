@@ -2,6 +2,7 @@ package com.team6.controller.productController;
 
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.pojo.Product;
+import com.team6.request.ProductSearchRequest;
 import com.team6.response.ProductSearchResponse;
 import com.team6.service.productService.IProductService;
 import org.springframework.beans.BeanUtils;
@@ -44,4 +45,6 @@ public class productSearchController {
             return AjaxResult.error("Product not found for the given barcode");
         }
     }
+
+
 }
