@@ -23,6 +23,8 @@ server:
   tomcat:
     # Tomcat URI Encoding
     uri-encoding: UTF-8
+    # Allow [ ] in query string (e.g. sorts[0].field=price)
+    relaxed-query-chars: "[,]"
     # Queue Size When Connections Are Full, default is 100
     accept-count: 1000
     threads:
