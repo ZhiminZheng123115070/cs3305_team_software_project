@@ -24,4 +24,6 @@ public interface CartMapper {
     int deleteCart(Cart request);
 
     List<CartItemResponse> getCartList(@Param("userId") Long userId, @Param("orderBy") String orderBy);
+
+    CartItemResponse getCartItemByCartId(@Param("userId") Long userId, @Param("cartId") Long cartId);
 }

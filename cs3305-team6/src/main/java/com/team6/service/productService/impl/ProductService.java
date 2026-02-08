@@ -3,8 +3,10 @@ package com.team6.service.productService.impl;
 import com.github.pagehelper.PageHelper;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.team6.mapper.CartMapper;
+import com.team6.mapper.OrderMapper;
 import com.team6.mapper.ProductMapper;
 import com.team6.pojo.Cart;
+import com.team6.pojo.Order;
 import com.team6.pojo.Product;
 import com.team6.request.CartListRequest;
 import com.team6.request.CartRequest;
@@ -37,6 +39,9 @@ public class ProductService implements IProductService {
     @Autowired
     private CartMapper cartMapper;
 
+    @Autowired
+    private OrderMapper orderMapper;
+
     private static final Map<String, String> SORT_FIELD_WHITELIST=new LinkedHashMap<>();
     static {
         SORT_FIELD_WHITELIST.put("price","p.price");
@@ -52,7 +57,6 @@ public class ProductService implements IProductService {
         SORT_FIELD_WHITELIST.put("cartId","c.cart_id");
         SORT_FIELD_WHITELIST.put("updatedAt","c.updated_at");
     }
-
 
     public String buildOrderBy(CartListRequest request){
         List<SortItem> sorts=request.getSorts();
@@ -115,5 +119,23 @@ public class ProductService implements IProductService {
         String orderBy=buildOrderBy(request);
         PageHelper.startPage(request.getPageNum(),request.getPageSize());
         return cartMapper.getCartList(userId,orderBy);
+    }
+
+    @Override
+    public CartItemResponse getCartItemByCartId(Long cartId){
+        Long userId = SecurityUtils.getUserId();
+        return cartMapper.getCartItemByCartId(userId, cartId);
+    }
+
+
+    @Override
+    public int addOrder(Long cartId) {
+        Long userId = SecurityUtils.getUserId();
+        CartItemResponse cart = cartMapper.getCartItemByCartId(userId, cartId);
+        if (cart == null) {
+            return 0;
+        }
+        Order order = Order.fromCartItem(cart, userId);
+        return orderMapper.addOrder(order);
     }
 }

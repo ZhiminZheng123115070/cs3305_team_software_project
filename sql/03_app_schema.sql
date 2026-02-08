@@ -20,15 +20,15 @@ CREATE TABLE app_products (
   price DECIMAL(7,2) DEFAULT NULL COMMENT 'Current price (MVP: single price)',
   currency CHAR(3) NOT NULL DEFAULT 'EUR' COMMENT 'Currency code',
 
-  -- Nutrition per 100g (for filtering/sorting)
-  energy_kcal DECIMAL(6,2) DEFAULT NULL COMMENT 'kcal per 100g',
-  fat DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
-  saturated_fat DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
-  carbohydrates DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
-  sugars DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
-  fiber DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
-  proteins DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
-  salt DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  -- Nutrition total 100g (for filtering/sorting)
+  energy_kcal DECIMAL(6,2) DEFAULT NULL COMMENT 'kcal',
+  fat DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
+  saturated_fat DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
+  carbohydrates DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
+  sugars DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
+  fiber DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
+  proteins DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
+  salt DECIMAL(5,2) DEFAULT NULL COMMENT 'g',
 
   nutri_score CHAR(1) DEFAULT NULL COMMENT 'OFF Nutri-Score A–E (optional)',
 
@@ -156,17 +156,36 @@ CREATE TABLE app_cart(
 
 -- 4) Purchases (header) - purchase history sessions
 
-DROP TABLE IF EXISTS app_purchases;
+DROP TABLE IF EXISTS app_orders;
 
-CREATE TABLE app_purchases (
-  id BIGINT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE app_orders (
+  order_id BIGINT AUTO_INCREMENT PRIMARY KEY,
   user_id BIGINT NOT NULL,
-  purchased_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	
+	
+  product_id BIGINT NOT NULL,
+	name VARCHAR(255) NOT NULL COMMENT 'Product name',
+  brand VARCHAR(255) DEFAULT NULL COMMENT 'Brand name',
+  image_url TEXT DEFAULT NULL COMMENT 'Image URL',
+  quantity INT NOT NULL DEFAULT 1,
+  unit_price DECIMAL(10,2) NOT NULL,
+  line_total DECIMAL(10,2) DEFAULT NULL,
+  currency CHAR(3) NOT NULL DEFAULT 'EUR',
+	
+  energy_kcal DECIMAL(6,2) DEFAULT NULL,
+  fat DECIMAL(5,2) DEFAULT NULL,
+  saturated_fat DECIMAL(5,2) DEFAULT NULL,
+  carbohydrates DECIMAL(5,2) DEFAULT NULL,
+  sugars DECIMAL(5,2) DEFAULT NULL,
+  fiber DECIMAL(5,2) DEFAULT NULL,
+  proteins DECIMAL(5,2) DEFAULT NULL,
+  salt DECIMAL(5,2) DEFAULT NULL,
+	
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-  total_price DECIMAL(10,2) DEFAULT NULL COMMENT 'Optional cached total',
-  currency CHAR(3) NOT NULL DEFAULT 'EUR'
+  KEY idx_user_created (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
-  COMMENT='Purchase records (headers)';
+  COMMENT='orders table';
 
 
 
@@ -180,6 +199,14 @@ CREATE TABLE app_purchase_items (
   barcode VARCHAR(32) NOT NULL,
 
   quantity INT NOT NULL DEFAULT 1,
+	fat DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  saturated_fat DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  carbohydrates DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  sugars DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  fiber DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  proteins DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+  salt DECIMAL(5,2) DEFAULT NULL COMMENT 'g per 100g',
+	
 
   -- Snapshot the price at purchase time (so history stays correct)
   unit_price DECIMAL(7,2) DEFAULT NULL,
