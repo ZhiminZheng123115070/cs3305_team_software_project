@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'cart/index.dart';
 import 'home/index.dart';
 import 'mine/index.dart';
+import 'scan/scan_index.dart'; // ✅ add this import (make sure file path matches)
 
-/// Bottom dock: Home, Cart, Mine (fixed first-level menus).
+/// Bottom dock: Home, Cart, Scan, Mine (fixed first-level menus).
 class PageIndex extends StatefulWidget {
   const PageIndex({Key? key}) : super(key: key);
 
@@ -13,31 +14,39 @@ class PageIndex extends StatefulWidget {
 }
 
 class _PageIndexState extends State<PageIndex> {
-  int _index_current = 0;
+  int _indexCurrent = 0;
 
-  final List _pageList = [
-    const HomeIndex(),
-    const CartIndex(),
-    const MineIndex(),
+  final List<Widget> _pageList = const [
+    HomeIndex(),
+    CartIndex(),
+    ScanIndex(), // ✅ new tab
+    MineIndex(),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _pageList[_index_current],
+      // ✅ preserves state when switching tabs
+      body: IndexedStack(
+        index: _indexCurrent,
+        children: _pageList,
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _index_current,
+        currentIndex: _indexCurrent,
         onTap: (int index) {
           setState(() {
-            _index_current = index;
+            _indexCurrent = index;
           });
         },
+        type: BottomNavigationBarType.fixed, // ✅ needed for 4 items
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.shopping_cart), label: "Cart"),
+          BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: "Scan"),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Mine"),
         ],
       ),
     );
   }
 }
+

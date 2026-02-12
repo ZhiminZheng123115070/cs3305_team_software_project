@@ -8,6 +8,8 @@ import 'package:ruoyi_app/pages/mine/info/edit.dart';
 import 'package:ruoyi_app/pages/mine/info/index.dart';
 import 'package:ruoyi_app/pages/system/role/index.dart';
 import 'package:ruoyi_app/pages/tool/swagger/index.dart';
+import 'package:ruoyi_app/pages/scan/scan_index.dart';
+
 
 import '../pages/mine/pwd/index.dart';
 import '../pages/mine/setting/index.dart';
@@ -62,5 +64,7 @@ class AppPages {
     GetPage(name: AppRoutes.post, page: () => const PostIndex()),
     GetPage(name: AppRoutes.swagger, page: () => const SwaggerIndex()),
     GetPage(name: AppRoutes.productQuery, page: () => const ProductQueryPage()),
+    GetPage(name: AppRoutes.scan, page: () => const ScanIndex()),
+
   ];
 }
