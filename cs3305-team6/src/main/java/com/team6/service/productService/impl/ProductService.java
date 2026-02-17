@@ -5,21 +5,23 @@ import com.ruoyi.common.utils.SecurityUtils;
 import com.team6.mapper.CartMapper;
 import com.team6.mapper.OrderMapper;
 import com.team6.mapper.ProductMapper;
+import com.team6.mapper.StorageMapper;
 import com.team6.pojo.Cart;
 import com.team6.pojo.Order;
 import com.team6.pojo.Product;
-import com.team6.request.CartListRequest;
-import com.team6.request.CartRequest;
-import com.team6.request.ProductSearchRequest;
-import com.team6.request.SortItem;
+import com.team6.pojo.Storage;
+import com.team6.request.*;
 import com.team6.response.CartItemResponse;
 import com.team6.response.ProductSearchResponse;
+import com.team6.response.StorageResponse;
 import com.team6.service.productService.IProductService;
 import org.apache.catalina.security.SecurityUtil;
+import org.apache.ibatis.annotations.Param;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +43,9 @@ public class ProductService implements IProductService {
 
     @Autowired
     private OrderMapper orderMapper;
+
+    @Autowired
+    private StorageMapper storageMapper;
 
     private static final Map<String, String> SORT_FIELD_WHITELIST=new LinkedHashMap<>();
     static {
@@ -136,12 +141,57 @@ public class ProductService implements IProductService {
             return 0;
         }
         Order order = Order.fromCartItem(cart, userId);
+        Storage storage=Storage.fromCartItem(cart, userId);
+        storageMapper.addStorage(storage);
         return orderMapper.addOrder(order);
     }
 
     @Override
-    public List<Order> getOrderList() {
-        Long userId = SecurityUtils.getUserId();
-        return orderMapper.getOrderList(userId);
+    public int updateStorage(Long storageId, BigDecimal consumptionRate){
+        StorageResponse storage= storageMapper.findStorageById(storageId);
+
+        if(storage==null){
+            throw new RuntimeException("Storage didn't existed");
+        }
+
+
+
+        BigDecimal consumption=storage.getConsumption();
+        consumption=consumption.subtract(consumptionRate);
+        if(consumption !=null && consumption.compareTo(BigDecimal.ZERO)<0){
+            throw new RuntimeException("Insufficient stock in storage");
+        }
+
+        if(consumption !=null && consumption.compareTo(BigDecimal.ZERO)==0){
+            storageMapper.deleteStorage(storage.getStorageId(),storage.getUserId());
+            return 1;
+        }
+
+        Storage request=new Storage();
+        request.setStorageId(storage.getStorageId());
+        request.setUserId(storage.getUserId());
+
+        request.setConsumption(consumption);
+        return storageMapper.updateStorage(request);
     }
+
+    @Override
+    public StorageResponse findStorageById(Long storageId){
+        return storageMapper.findStorageById(storageId);
+    }
+
+    @Override
+    public List<StorageResponse> findStoragesPageList(StorageListRequest request){
+        Long userId = SecurityUtils.getUserId();
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
+        return storageMapper.findStoragesByUserId(userId);
+    }
+
+
+    @Override
+    public int deleteStorage(Long storageId){
+        Long userId=SecurityUtils.getUserId();
+        return storageMapper.deleteStorage(storageId,userId);
+    }
+
 }

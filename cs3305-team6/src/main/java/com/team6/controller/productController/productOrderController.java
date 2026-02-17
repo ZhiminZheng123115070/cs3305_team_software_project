@@ -5,11 +5,7 @@ import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.service.productService.IProductService;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @author zhimin
@@ -30,9 +26,15 @@ public class productOrderController {
         return AjaxResult.error("Update cart in order failure");
     }
 
-    @GetMapping("/list")
-    public AjaxResult getList(){
-        return AjaxResult.success(productService.getOrderList());
+
+    @DeleteMapping()
+    public AjaxResult deleteOrder(@RequestParam("order_id")Long orderId){
+        if(productService.deleteCart(orderId)>0){
+            return AjaxResult.success("Delete product in Order successfully");
+        }
+        return AjaxResult.error("Delete product in Order failure");
     }
+
+
 
 }

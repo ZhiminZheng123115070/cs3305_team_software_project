@@ -2,12 +2,15 @@ package com.team6.service.productService;
 
 import com.team6.pojo.Cart;
 import com.team6.pojo.Product;
+import com.team6.pojo.Storage;
 import com.team6.request.CartListRequest;
 import com.team6.request.ProductSearchRequest;
+import com.team6.request.StorageListRequest;
 import com.team6.response.CartItemResponse;
 import com.team6.response.ProductSearchResponse;
-import com.team6.pojo.Order;
+import com.team6.response.StorageResponse;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -43,6 +46,16 @@ public interface IProductService {
 
     public int addOrder(Long cartId);
 
-    List<Order> getOrderList();
+    public int updateStorage(Long storageId, BigDecimal consumptionRate);
+
+    public StorageResponse findStorageById(Long storageId);
+
+    public List<StorageResponse> findStoragesPageList(StorageListRequest request);
+
+    public int deleteStorage(Long storageId);
+
+
+
+
 
 }
