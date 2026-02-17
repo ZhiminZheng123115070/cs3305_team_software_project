@@ -140,6 +140,17 @@ public class ProductService implements IProductService {
         if (cart == null) {
             return 0;
         }
+        int quantity = cart.getQuantity();
+        BigDecimal qty = BigDecimal.valueOf(quantity);
+        if (cart.getEnergyKcal() != null) cart.setEnergyKcal(cart.getEnergyKcal().multiply(qty));
+        if (cart.getFat() != null) cart.setFat(cart.getFat().multiply(qty));
+        if (cart.getSaturatedFat() != null) cart.setSaturatedFat(cart.getSaturatedFat().multiply(qty));
+        if (cart.getCarbohydrates() != null) cart.setCarbohydrates(cart.getCarbohydrates().multiply(qty));
+        if (cart.getSugars() != null) cart.setSugars(cart.getSugars().multiply(qty));
+        if (cart.getFiber() != null) cart.setFiber(cart.getFiber().multiply(qty));
+        if (cart.getProteins() != null) cart.setProteins(cart.getProteins().multiply(qty));
+        if (cart.getSalt() != null) cart.setSalt(cart.getSalt().multiply(qty));
+
         Order order = Order.fromCartItem(cart, userId);
         Storage storage=Storage.fromCartItem(cart, userId);
         storageMapper.addStorage(storage);
