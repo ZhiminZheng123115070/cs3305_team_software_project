@@ -1,12 +1,14 @@
 package com.team6.service.productService;
 
 import com.team6.pojo.Cart;
+import com.team6.pojo.Order;
 import com.team6.pojo.Product;
 import com.team6.pojo.Storage;
 import com.team6.request.CartListRequest;
 import com.team6.request.ProductSearchRequest;
 import com.team6.request.StorageListRequest;
 import com.team6.response.CartItemResponse;
+import com.team6.response.OrderResponse;
 import com.team6.response.ProductSearchResponse;
 import com.team6.response.StorageResponse;
 
@@ -45,6 +47,11 @@ public interface IProductService {
 
 
     public int addOrder(Long cartId);
+
+
+    public List<OrderResponse> getOrdersByUserId();
+
+
 
     public int updateStorage(Long storageId, BigDecimal consumptionRate);
 

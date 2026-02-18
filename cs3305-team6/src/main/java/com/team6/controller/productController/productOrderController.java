@@ -35,6 +35,12 @@ public class productOrderController {
         return AjaxResult.error("Delete product in Order failure");
     }
 
+    @GetMapping()
+    public AjaxResult getOrdersByUserId(){
+        return AjaxResult.success(productService.getOrdersByUserId());
+    }
+
+
 
 
 }

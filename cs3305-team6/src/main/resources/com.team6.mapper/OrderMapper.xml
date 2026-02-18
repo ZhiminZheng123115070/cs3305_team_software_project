@@ -47,6 +47,17 @@
             proteins = values(proteins),
             salt = values(salt)
     </insert>
+    <select id="findOrdersbyUserId" resultMap="orderResultMap">
+        select o.order_id, o.user_id, o.product_id,
+               o.quantity, o.unit_price, o.line_total, o.currency, o.created_at,
+               p.name, p.brand, p.image_url,
+               p.energy_kcal, p.fat, p.saturated_fat, p.carbohydrates, p.sugars,
+               p.fiber, p.proteins, p.salt
+        from app_orders o
+        left join app_products p on o.product_id = p.product_id
+        where o.user_id = #{userId}
+        order by o.created_at desc
+    </select>
 
     <select id="getOrderList" resultMap="orderResultMap">
         select order_id, user_id, product_id, name, brand, image_url, quantity,

@@ -12,6 +12,7 @@ import com.team6.pojo.Product;
 import com.team6.pojo.Storage;
 import com.team6.request.*;
 import com.team6.response.CartItemResponse;
+import com.team6.response.OrderResponse;
 import com.team6.response.ProductSearchResponse;
 import com.team6.response.StorageResponse;
 import com.team6.service.productService.IProductService;
@@ -155,6 +156,16 @@ public class ProductService implements IProductService {
         Storage storage=Storage.fromCartItem(cart, userId);
         storageMapper.addStorage(storage);
         return orderMapper.addOrder(order);
+    }
+
+    @Override
+    public List<OrderResponse> getOrdersByUserId(){
+        Long userId = SecurityUtils.getUserId();
+
+        List<Order> orders = orderMapper.findOrdersbyUserId(userId);
+        return orders.stream()
+                .map(OrderResponse::from)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     @Override

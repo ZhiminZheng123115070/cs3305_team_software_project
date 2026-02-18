@@ -12,7 +12,8 @@ public interface OrderMapper {
     /** Insert order line; on duplicate (user_id, product_id) update quantity. */
     int addOrder(Order order);
 
-    /** Get order list by user id, ordered by created_at desc. */
-    List<Order> getOrderList(@Param("userId") Long userId);
+    List<Order> findOrdersbyUserId(@Param("userId") Long userId);
+
+
 
 }
