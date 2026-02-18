@@ -9,12 +9,39 @@
         <result column="user_id" property="userId"/>
         <result column="product_id" property="productId"/>
         <result column="calories_kcal" property="caloriesKcal"/>
+        <result column="consumption_rate" property="consumptionRate"/>
+        <result column="eaten_at" property="eatenAt"/>
+    </resultMap>
+
+    <resultMap id="DietLogResponseResultMap" type="com.team6.response.DietLogResponse">
+        <id column="id" property="id"/>
+        <result column="product_id" property="productId"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="name" property="name"/>
+        <result column="energy_kcal" property="energyKcal"/>
+        <result column="proteins" property="proteins"/>
+        <result column="consumption_rate" property="consumptionRate"/>
         <result column="eaten_at" property="eatenAt"/>
     </resultMap>
 
     <insert id="insertDietLog" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO app_user_diet_log (user_id, product_id, calories_kcal, eaten_at)
-        VALUES (#{userId}, #{productId}, #{caloriesKcal}, #{eatenAt})
+        INSERT INTO app_user_diet_log (user_id, product_id, calories_kcal, consumption_rate, eaten_at)
+        VALUES (#{userId}, #{productId}, #{caloriesKcal}, #{consumptionRate}, #{eatenAt})
     </insert>
+
+    <select id="selectByUserIdOrderByEatenAtDesc" resultMap="DietLogResultMap">
+        SELECT id, user_id, product_id, calories_kcal, consumption_rate, eaten_at
+        FROM app_user_diet_log
+        WHERE user_id = #{userId}
+        ORDER BY eaten_at DESC
+    </select>
+
+    <select id="selectByUserIdOrderByEatenAtDescWithProduct" resultMap="DietLogResponseResultMap">
+        SELECT dl.id, dl.product_id, p.image_url, p.name, p.energy_kcal, p.proteins, dl.consumption_rate, dl.eaten_at
+        FROM app_user_diet_log dl
+        LEFT JOIN app_products p ON dl.product_id = p.product_id
+        WHERE dl.user_id = #{userId}
+        ORDER BY dl.eaten_at DESC
+    </select>
 
 </mapper>

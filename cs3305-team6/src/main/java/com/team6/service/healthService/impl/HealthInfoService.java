@@ -21,6 +21,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author zhimin
@@ -90,6 +93,7 @@ public class HealthInfoService implements IHealthInfoService {
 
         DietLog log = new DietLog();
         log.setCaloriesKcal(totalKcal);
+        log.setConsumptionRate(consumptionRate);
         log.setProductId(storage.getProductId());
         log.setUserId(userId);
         log.setEatenAt(LocalDateTime.now());
@@ -129,6 +133,13 @@ public class HealthInfoService implements IHealthInfoService {
                 : 0;
         resp.setPercentage(Math.min(percentage, 100));
         return resp;
+    }
+
+    @Override
+    public List<DietLogResponse> getDietLogList() {
+        Long userId = SecurityUtils.getUserId();
+        List<DietLogResponse> list = dietLogMapper.selectByUserIdOrderByEatenAtDescWithProduct(userId);
+        return list == null ? Collections.emptyList() : list;
     }
 
     private static BigDecimal toScale(BigDecimal v) {

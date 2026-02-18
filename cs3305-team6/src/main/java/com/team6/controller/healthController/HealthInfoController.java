@@ -27,4 +27,9 @@ public class HealthInfoController {
     public AjaxResult getDailyCalories(@RequestParam(value = "date", required = false) String date) {
         return AjaxResult.success(healthInfoService.getDailyCalories(date));
     }
+
+    @GetMapping("/diet-log")
+    public AjaxResult getDietLogList() {
+        return AjaxResult.success(healthInfoService.getDietLogList());
+    }
 }

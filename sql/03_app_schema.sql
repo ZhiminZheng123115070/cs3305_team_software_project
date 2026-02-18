@@ -320,11 +320,12 @@ CREATE TABLE app_user_info_nutrition_record (
 -- User diet log (what was eaten)
 DROP TABLE IF EXISTS app_user_diet_log;
 CREATE TABLE app_user_diet_log (
-  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  user_id       BIGINT          NOT NULL COMMENT '= sys_user.user_id',
-  product_id    BIGINT          NOT NULL COMMENT 'FK to app_products or food table',
-  calories_kcal DECIMAL(7,2)    NOT NULL COMMENT 'Calories in kcal',
-  eaten_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When eaten',
+  id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id          BIGINT          NOT NULL COMMENT '= sys_user.user_id',
+  product_id       BIGINT          NOT NULL COMMENT 'FK to app_products or food table',
+  calories_kcal    DECIMAL(7,2)    NOT NULL COMMENT 'Calories in kcal',
+  consumption_rate DECIMAL(19,4)   NULL COMMENT 'Rate/amount used when adding this log',
+  eaten_at         DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When eaten',
   INDEX idx_user_eaten (user_id, eaten_at),
   INDEX idx_product (product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User diet log (what was eaten)';
