@@ -20,15 +20,6 @@ public class UserInfoResponse {
     private BigDecimal bmi;
     private BigDecimal bmr;
 
-    private BigDecimal energyKcal;
-    private BigDecimal fat;
-    private BigDecimal saturatedFat;
-    private BigDecimal carbohydrates;
-    private BigDecimal sugars;
-    private BigDecimal fiber;
-    private BigDecimal proteins;
-    private BigDecimal salt;
-
     private Integer status;
 
     private LocalDateTime createdAt;
@@ -98,70 +89,6 @@ public class UserInfoResponse {
         this.bmr = bmr;
     }
 
-    public BigDecimal getEnergyKcal() {
-        return energyKcal;
-    }
-
-    public void setEnergyKcal(BigDecimal energyKcal) {
-        this.energyKcal = energyKcal;
-    }
-
-    public BigDecimal getFat() {
-        return fat;
-    }
-
-    public void setFat(BigDecimal fat) {
-        this.fat = fat;
-    }
-
-    public BigDecimal getSaturatedFat() {
-        return saturatedFat;
-    }
-
-    public void setSaturatedFat(BigDecimal saturatedFat) {
-        this.saturatedFat = saturatedFat;
-    }
-
-    public BigDecimal getCarbohydrates() {
-        return carbohydrates;
-    }
-
-    public void setCarbohydrates(BigDecimal carbohydrates) {
-        this.carbohydrates = carbohydrates;
-    }
-
-    public BigDecimal getSugars() {
-        return sugars;
-    }
-
-    public void setSugars(BigDecimal sugars) {
-        this.sugars = sugars;
-    }
-
-    public BigDecimal getFiber() {
-        return fiber;
-    }
-
-    public void setFiber(BigDecimal fiber) {
-        this.fiber = fiber;
-    }
-
-    public BigDecimal getProteins() {
-        return proteins;
-    }
-
-    public void setProteins(BigDecimal proteins) {
-        this.proteins = proteins;
-    }
-
-    public BigDecimal getSalt() {
-        return salt;
-    }
-
-    public void setSalt(BigDecimal salt) {
-        this.salt = salt;
-    }
-
     public Integer getStatus() {
         return status;
     }
@@ -200,14 +127,6 @@ public class UserInfoResponse {
         r.setGender(info.getGender());
         r.setBmi(info.getBmi());
         r.setBmr(info.getBmr());
-        r.setEnergyKcal(info.getEnergyKcal());
-        r.setFat(info.getFat());
-        r.setSaturatedFat(info.getSaturatedFat());
-        r.setCarbohydrates(info.getCarbohydrates());
-        r.setSugars(info.getSugars());
-        r.setFiber(info.getFiber());
-        r.setProteins(info.getProteins());
-        r.setSalt(info.getSalt());
         r.setStatus(info.getStatus());
         r.setCreatedAt(info.getCreatedAt());
         r.setUpdatedAt(info.getUpdatedAt());

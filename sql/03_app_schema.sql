@@ -263,7 +263,7 @@ CREATE TABLE app_unknown_barcodes (
   COMMENT='Unknown barcodes (OFF not found cache)';
 	
 	
--- User health/profile (current) + nutrition goals
+-- User health/profile (current)
 DROP TABLE IF EXISTS app_user_info;
 CREATE TABLE app_user_info (
   user_id BIGINT NOT NULL PRIMARY KEY COMMENT '= sys_user.user_id',
@@ -276,20 +276,11 @@ CREATE TABLE app_user_info (
   bmi DECIMAL(5,2) NOT NULL,
   bmr DECIMAL(7,2) DEFAULT NULL COMMENT 'Basal metabolic rate, kcal/day (Mifflin-St Jeor)',
 
-  energy_kcal DECIMAL(6,2) DEFAULT NULL,
-  fat DECIMAL(5,2) DEFAULT NULL,
-  saturated_fat DECIMAL(5,2) DEFAULT NULL,
-  carbohydrates DECIMAL(5,2) DEFAULT NULL,
-  sugars DECIMAL(5,2) DEFAULT NULL,
-  fiber DECIMAL(5,2) DEFAULT NULL,
-  proteins DECIMAL(5,2) DEFAULT NULL,
-  salt DECIMAL(5,2) DEFAULT NULL,
-
   status TINYINT(1) NOT NULL DEFAULT 1 COMMENT '0=hidden, 1=visible (user toggles)',
 
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User profile (current) + nutrition goals';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User profile (current)';
 
 
 --  User profile history 

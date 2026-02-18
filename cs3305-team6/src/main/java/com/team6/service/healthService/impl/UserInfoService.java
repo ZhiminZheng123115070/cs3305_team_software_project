@@ -11,6 +11,8 @@ import com.ruoyi.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 
 /**
@@ -26,7 +28,7 @@ public class UserInfoService implements IUserInfoService {
     private HealthInfoRecordMapper healthInfoRecordMapper;
 
     @Override
-    public UserInfoResponse addUserInfoAndLog(UserInfoRequest request) {
+    public UserInfoResponse insertOrUpdateUserInfoAndAddLog(UserInfoRequest request) {
         Long userId = SecurityUtils.getUserId();
         UserInfo entity = toEntity(request, userId);
         LocalDateTime now = LocalDateTime.now();
@@ -43,6 +45,9 @@ public class UserInfoService implements IUserInfoService {
         return UserInfoResponse.from(saved);
     }
 
+
+
+
     private UserInfo toEntity(UserInfoRequest request, Long userId) {
         UserInfo e = new UserInfo();
         e.setUserId(userId);
@@ -51,18 +56,53 @@ public class UserInfoService implements IUserInfoService {
         e.setHeight(request.getHeight());
         e.setAge(request.getAge());
         e.setGender(request.getGender());
-        e.setBmi(request.getBmi());
-        e.setBmr(request.getBmr());
-        e.setEnergyKcal(request.getEnergyKcal());
-        e.setFat(request.getFat());
-        e.setSaturatedFat(request.getSaturatedFat());
-        e.setCarbohydrates(request.getCarbohydrates());
-        e.setSugars(request.getSugars());
-        e.setFiber(request.getFiber());
-        e.setProteins(request.getProteins());
-        e.setSalt(request.getSalt());
+        
+        // Calculate BMI: weight (kg) / (height (m))²
+        BigDecimal bmi = calculateBMI(request.getWeight(), request.getHeight());
+        e.setBmi(bmi);
+        
+        // Calculate BMR using Mifflin-St Jeor formula
+        BigDecimal bmr = calculateBMR(request.getWeight(), request.getHeight(), request.getAge(), request.getGender());
+        e.setBmr(bmr);
+        
         e.setStatus(request.getStatus() != null ? request.getStatus() : 1);
         return e;
+    }
+
+    /**
+     * Calculate BMI: weight / (height (m))^2
+     * Formula: BMI = weight / (height/100)^2
+     */
+    private BigDecimal calculateBMI(BigDecimal weight, BigDecimal height) {
+        if (weight == null || height == null || height.compareTo(BigDecimal.ZERO) == 0) {
+            return null;
+        }
+        // height in cm, convert to meters: height / 100
+        BigDecimal heightInMeters = height.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        // BMI = weight / (heightInMeters)²
+        BigDecimal heightSquared = heightInMeters.multiply(heightInMeters);
+        return weight.divide(heightSquared, 2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Calculate BMR using Mifflin-St Jeor formula
+     * Male (gender=0): BMR = 10 × weight + 6.25 × height - 5 × age + 5
+     * Female (gender=1): BMR = 10 × weight + 6.25 × height - 5 × age - 161
+     */
+    private BigDecimal calculateBMR(BigDecimal weight, BigDecimal height, Integer age, Integer gender) {
+        if (weight == null || height == null || age == null || gender == null) {
+            return null;
+        }
+
+        BigDecimal base = BigDecimal.valueOf(10).multiply(weight)
+                .add(BigDecimal.valueOf(6.25).multiply(height))
+                .subtract(BigDecimal.valueOf(5).multiply(BigDecimal.valueOf(age)));
+        
+
+        BigDecimal constant = gender == 0 ? BigDecimal.valueOf(5) : BigDecimal.valueOf(-161);
+        BigDecimal bmr = base.add(constant);
+        
+        return bmr.setScale(2, RoundingMode.HALF_UP);
     }
 
     private HealthInfoRecord toRecord(UserInfo info) {
