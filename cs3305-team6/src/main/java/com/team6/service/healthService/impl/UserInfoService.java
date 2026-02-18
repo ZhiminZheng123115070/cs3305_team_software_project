@@ -9,12 +9,14 @@ import com.team6.response.HealthInfoRecordResponse;
 import com.team6.response.UserInfoResponse;
 import com.team6.service.healthService.IUserInfoService;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,6 +34,9 @@ public class UserInfoService implements IUserInfoService {
 
     @Override
     public UserInfoResponse insertOrUpdateUserInfoAndAddLog(UserInfoRequest request) {
+        if (request == null) {
+            throw new ServiceException("Request cannot be null");
+        }
         Long userId = SecurityUtils.getUserId();
         UserInfo entity = toEntity(request, userId);
         LocalDateTime now = LocalDateTime.now();
@@ -45,6 +50,9 @@ public class UserInfoService implements IUserInfoService {
         healthInfoRecordMapper.insert(record);
 
         UserInfo saved = userInfoMapper.selectByUserId(userId);
+        if (saved == null) {
+            throw new ServiceException("User info save failed or data inconsistent");
+        }
         return UserInfoResponse.from(saved);
     }
 
@@ -108,6 +116,9 @@ public class UserInfoService implements IUserInfoService {
     public List<HealthInfoRecordResponse> getUserInfoHistoryByUserId() {
         Long userId = SecurityUtils.getUserId();
         List<HealthInfoRecord> records = healthInfoRecordMapper.getRecordsByUserId(userId);
+        if (records == null) {
+            return Collections.emptyList();
+        }
         return records.stream()
                 .map(HealthInfoRecordResponse::from)
                 .collect(Collectors.toList());

@@ -12,6 +12,9 @@
         <result column="eaten_at" property="eatenAt"/>
     </resultMap>
 
-
+    <insert id="insertDietLog" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app_user_diet_log (user_id, product_id, calories_kcal, eaten_at)
+        VALUES (#{userId}, #{productId}, #{caloriesKcal}, #{eatenAt})
+    </insert>
 
 </mapper>
