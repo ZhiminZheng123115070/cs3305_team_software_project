@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team6.mapper.DietLogMapper">
+
+    <resultMap id="DietLogResultMap" type="com.team6.pojo.DietLog">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="calories_kcal" property="caloriesKcal"/>
+        <result column="eaten_at" property="eatenAt"/>
+    </resultMap>
+
+
+
+</mapper>

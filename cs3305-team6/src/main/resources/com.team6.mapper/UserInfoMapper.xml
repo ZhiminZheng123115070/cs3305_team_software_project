@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team6.mapper.UserInfoMapper">
+
+    <resultMap id="userInfoResultMap" type="com.team6.pojo.UserInfo">
+        <id column="user_id" property="userId"/>
+        <result column="nickname" property="nickname"/>
+        <result column="weight" property="weight"/>
+        <result column="height" property="height"/>
+        <result column="age" property="age"/>
+        <result column="gender" property="gender"/>
+        <result column="bmi" property="bmi"/>
+        <result column="bmr" property="bmr"/>
+        <result column="energy_kcal" property="energyKcal"/>
+        <result column="fat" property="fat"/>
+        <result column="saturated_fat" property="saturatedFat"/>
+        <result column="carbohydrates" property="carbohydrates"/>
+        <result column="sugars" property="sugars"/>
+        <result column="fiber" property="fiber"/>
+        <result column="proteins" property="proteins"/>
+        <result column="salt" property="salt"/>
+        <result column="status" property="status"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+
+
+</mapper>
