@@ -56,9 +56,6 @@
         values (#{userId}, #{productId}, #{name}, #{brand}, #{imageUrl}, #{quantity}, #{unitPrice}, #{lineTotal}, #{currency},
                 #{energyKcal}, #{fat}, #{saturatedFat}, #{carbohydrates}, #{sugars}, #{fiber}, #{proteins}, #{salt}, 
                 #{createdAt}, #{consumption}, CURRENT_TIMESTAMP)
-        on duplicate key update
-            quantity = quantity + values(quantity),
-            updated_at = CURRENT_TIMESTAMP
     </insert>
     
     <update id="updateStorageQuantity">
@@ -103,6 +100,7 @@
                created_at, consumption, updated_at
         from app_user_storage
         where user_id=#{userId}
+        order by updated_at desc, created_at desc
     </select>
 
 
