@@ -1,4 +1,4 @@
-package com.team6.service.healthInfoService;
+package com.team6.service.healthService;
 
 /**
  * @author zhimin
