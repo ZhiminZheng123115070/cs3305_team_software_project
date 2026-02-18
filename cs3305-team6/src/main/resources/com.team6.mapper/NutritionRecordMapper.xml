@@ -19,6 +19,9 @@
         <result column="record_date" property="recordDate"/>
     </resultMap>
 
-
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app_user_info_nutrition_record (user_id, energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt, updated_at, record_date)
+        VALUES (#{userId}, #{energyKcal}, #{fat}, #{saturatedFat}, #{carbohydrates}, #{sugars}, #{fiber}, #{proteins}, #{salt}, CURRENT_TIMESTAMP, #{recordDate})
+    </insert>
 
 </mapper>
