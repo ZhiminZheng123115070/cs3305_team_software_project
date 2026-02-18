@@ -5,6 +5,7 @@ import com.team6.mapper.UserInfoMapper;
 import com.team6.pojo.HealthInfoRecord;
 import com.team6.pojo.UserInfo;
 import com.team6.request.UserInfoRequest;
+import com.team6.response.HealthInfoRecordResponse;
 import com.team6.response.UserInfoResponse;
 import com.team6.service.healthService.IUserInfoService;
 import com.ruoyi.common.utils.SecurityUtils;
@@ -14,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author zhimin
@@ -45,9 +48,6 @@ public class UserInfoService implements IUserInfoService {
         return UserInfoResponse.from(saved);
     }
 
-
-
-
     private UserInfo toEntity(UserInfoRequest request, Long userId) {
         UserInfo e = new UserInfo();
         e.setUserId(userId);
@@ -57,11 +57,11 @@ public class UserInfoService implements IUserInfoService {
         e.setAge(request.getAge());
         e.setGender(request.getGender());
         
-        // Calculate BMI: weight (kg) / (height (m))²
+
         BigDecimal bmi = calculateBMI(request.getWeight(), request.getHeight());
         e.setBmi(bmi);
         
-        // Calculate BMR using Mifflin-St Jeor formula
+
         BigDecimal bmr = calculateBMR(request.getWeight(), request.getHeight(), request.getAge(), request.getGender());
         e.setBmr(bmr);
         
@@ -69,26 +69,18 @@ public class UserInfoService implements IUserInfoService {
         return e;
     }
 
-    /**
-     * Calculate BMI: weight / (height (m))^2
-     * Formula: BMI = weight / (height/100)^2
-     */
+
     private BigDecimal calculateBMI(BigDecimal weight, BigDecimal height) {
         if (weight == null || height == null || height.compareTo(BigDecimal.ZERO) == 0) {
             return null;
         }
-        // height in cm, convert to meters: height / 100
+
         BigDecimal heightInMeters = height.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
-        // BMI = weight / (heightInMeters)²
+
         BigDecimal heightSquared = heightInMeters.multiply(heightInMeters);
         return weight.divide(heightSquared, 2, RoundingMode.HALF_UP);
     }
 
-    /**
-     * Calculate BMR using Mifflin-St Jeor formula
-     * Male (gender=0): BMR = 10 × weight + 6.25 × height - 5 × age + 5
-     * Female (gender=1): BMR = 10 × weight + 6.25 × height - 5 × age - 161
-     */
     private BigDecimal calculateBMR(BigDecimal weight, BigDecimal height, Integer age, Integer gender) {
         if (weight == null || height == null || age == null || gender == null) {
             return null;
@@ -103,6 +95,22 @@ public class UserInfoService implements IUserInfoService {
         BigDecimal bmr = base.add(constant);
         
         return bmr.setScale(2, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public UserInfoResponse getUserInfoByUserId() {
+        Long userId = SecurityUtils.getUserId();
+        UserInfo userInfo = userInfoMapper.selectByUserId(userId);
+        return UserInfoResponse.from(userInfo);
+    }
+
+    @Override
+    public List<HealthInfoRecordResponse> getUserInfoHistoryByUserId() {
+        Long userId = SecurityUtils.getUserId();
+        List<HealthInfoRecord> records = healthInfoRecordMapper.getRecordsByUserId(userId);
+        return records.stream()
+                .map(HealthInfoRecordResponse::from)
+                .collect(Collectors.toList());
     }
 
     private HealthInfoRecord toRecord(UserInfo info) {
