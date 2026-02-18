@@ -28,6 +28,15 @@ public class UserInfoController {
         return AjaxResult.success(response);
     }
 
+    @GetMapping
+    public AjaxResult getCurrentUserInfo(){
+        return AjaxResult.success(userInfoService.getUserInfoByUserId());
+    }
+
+    @GetMapping("/history")
+    public AjaxResult getUserInfoHistory(){
+        return AjaxResult.success(userInfoService.getUserInfoHistoryByUserId());
+    }
 
 
 }

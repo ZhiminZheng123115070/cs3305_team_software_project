@@ -22,5 +22,11 @@
         INSERT INTO app_user_info_record (user_id, nickname, weight, height, age, gender, bmi, bmr, status, created_at)
         VALUES (#{userId}, #{nickname}, #{weight}, #{height}, #{age}, #{gender}, #{bmi}, #{bmr}, #{status}, #{createdAt})
     </insert>
+    <select id="getRecordsByUserId" resultMap="healthInfoRecordResultMap">
+        SELECT id, user_id, nickname, weight, height, age, gender, bmi, bmr, status, created_at
+        FROM app_user_info_record
+        WHERE user_id = #{userId}
+        ORDER BY created_at DESC
+    </select>
 
 </mapper>
