@@ -1,6 +1,6 @@
-package com.team6.service.healthInfoService.impl;
+package com.team6.service.healthService.impl;
 
-import com.team6.service.healthInfoService.IHealthInfoService;
+import com.team6.service.healthService.IHealthInfoService;
 import org.springframework.stereotype.Service;
 
 /**

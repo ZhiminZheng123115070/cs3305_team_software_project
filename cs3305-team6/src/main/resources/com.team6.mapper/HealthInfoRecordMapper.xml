@@ -18,6 +18,9 @@
         <result column="created_at" property="createdAt"/>
     </resultMap>
 
-
+    <insert id="insert" parameterType="com.team6.pojo.HealthInfoRecord" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO app_user_info_record (user_id, nickname, weight, height, age, gender, bmi, bmr, status, created_at)
+        VALUES (#{userId}, #{nickname}, #{weight}, #{height}, #{age}, #{gender}, #{bmi}, #{bmr}, #{status}, #{createdAt})
+    </insert>
 
 </mapper>

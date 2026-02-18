@@ -1,5 +1,6 @@
 package com.team6.mapper;
 
+import com.team6.pojo.UserInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -8,4 +9,8 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserInfoMapper {
+
+    int insertOrUpdate(UserInfo userInfo);
+
+    UserInfo selectByUserId(Long userId);
 }

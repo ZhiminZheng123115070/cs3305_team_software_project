@@ -1,5 +1,6 @@
 package com.team6.mapper;
 
+import com.team6.pojo.HealthInfoRecord;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -9,4 +10,5 @@ import org.apache.ibatis.annotations.Mapper;
 @Mapper
 public interface HealthInfoRecordMapper {
 
+    int insert(HealthInfoRecord record);
 }
