@@ -13,14 +13,6 @@
         <result column="gender" property="gender"/>
         <result column="bmi" property="bmi"/>
         <result column="bmr" property="bmr"/>
-        <result column="energy_kcal" property="energyKcal"/>
-        <result column="fat" property="fat"/>
-        <result column="saturated_fat" property="saturatedFat"/>
-        <result column="carbohydrates" property="carbohydrates"/>
-        <result column="sugars" property="sugars"/>
-        <result column="fiber" property="fiber"/>
-        <result column="proteins" property="proteins"/>
-        <result column="salt" property="salt"/>
         <result column="status" property="status"/>
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
@@ -28,22 +20,17 @@
 
     <insert id="insertOrUpdate" parameterType="com.team6.pojo.UserInfo">
         INSERT INTO app_user_info (user_id, nickname, weight, height, age, gender, bmi, bmr,
-                                   energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
                                    status, created_at, updated_at)
         VALUES (#{userId}, #{nickname}, #{weight}, #{height}, #{age}, #{gender}, #{bmi}, #{bmr},
-                #{energyKcal}, #{fat}, #{saturatedFat}, #{carbohydrates}, #{sugars}, #{fiber}, #{proteins}, #{salt},
                 #{status}, #{createdAt}, #{updatedAt})
         ON DUPLICATE KEY UPDATE
             nickname = VALUES(nickname), weight = VALUES(weight), height = VALUES(height),
             age = VALUES(age), gender = VALUES(gender), bmi = VALUES(bmi), bmr = VALUES(bmr),
-            energy_kcal = VALUES(energy_kcal), fat = VALUES(fat), saturated_fat = VALUES(saturated_fat),
-            carbohydrates = VALUES(carbohydrates), sugars = VALUES(sugars), fiber = VALUES(fiber),
-            proteins = VALUES(proteins), salt = VALUES(salt), status = VALUES(status), updated_at = VALUES(updated_at)
+            status = VALUES(status), updated_at = VALUES(updated_at)
     </insert>
 
     <select id="selectByUserId" resultMap="userInfoResultMap">
         SELECT user_id, nickname, weight, height, age, gender, bmi, bmr,
-               energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
                status, created_at, updated_at
         FROM app_user_info
         WHERE user_id = #{userId}

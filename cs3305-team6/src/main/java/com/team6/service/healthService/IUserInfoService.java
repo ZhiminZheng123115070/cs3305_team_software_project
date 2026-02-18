@@ -12,5 +12,6 @@ public interface IUserInfoService {
     /**
      * Add or update user info and write a snapshot to history. Returns the saved profile.
      */
-    UserInfoResponse addUserInfoAndLog(UserInfoRequest request);
+    public UserInfoResponse insertOrUpdateUserInfoAndAddLog(UserInfoRequest request);
+
 }
