@@ -12,6 +12,8 @@ public interface OrderMapper {
     /** Insert order line; on duplicate (user_id, product_id) update quantity. */
     int addOrder(Order order);
 
+    List<Order> findOrdersbyUserId(@Param("userId") Long userId);
+
 
 
 }
