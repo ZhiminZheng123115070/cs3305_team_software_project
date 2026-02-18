@@ -436,6 +436,55 @@ class _CartIndexState extends State<CartIndex> {
     }
   }
 
+  Future<void> _onDecrementQuantity(CartItem item) async {
+    if (item.quantity <= 1) return;
+    try {
+      final resp = await updateCart(item.cartId, item.quantity - 1);
+      if (resp.statusCode == 200 && resp.data != null) {
+        final d = resp.data as Map?;
+        if (d != null && (d['code'] == 200 || d['code'] == '200')) {
+          _loadCart();
+          return;
+        }
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update quantity')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update quantity')),
+        );
+      }
+    }
+  }
+
+  Future<void> _onIncrementQuantity(CartItem item) async {
+    try {
+      final resp = await updateCart(item.cartId, item.quantity + 1);
+      if (resp.statusCode == 200 && resp.data != null) {
+        final d = resp.data as Map?;
+        if (d != null && (d['code'] == 200 || d['code'] == '200')) {
+          _loadCart();
+          return;
+        }
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update quantity')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to update quantity')),
+        );
+      }
+    }
+  }
+
   Future<void> _onDelete(CartItem item) async {
     try {
       await deleteCart(item.cartId);
@@ -630,6 +679,44 @@ class _CartIndexState extends State<CartIndex> {
                   ],
                 ],
               ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: item.quantity <= 1 ? null : () => _onDecrementQuantity(item),
+                  child: Opacity(
+                    opacity: item.quantity <= 1 ? 0.4 : 1,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: lightGreen,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(Icons.remove, color: green, size: 26),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _onIncrementQuantity(item),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: lightGreen,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.add, color: green, size: 26),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

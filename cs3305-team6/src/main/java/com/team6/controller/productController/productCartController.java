@@ -1,5 +1,6 @@
 package com.team6.controller.productController;
 
+import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.request.CartListRequest;
 import com.team6.response.CartItemResponse;
@@ -9,10 +10,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Cart endpoints require login; userId from SecurityUtils.
  * @author zhimin
  * 2026/2/6 16:13
  */
+@Anonymous
 @RestController
 @RequestMapping("/user/product/cart")
 public class productCartController {

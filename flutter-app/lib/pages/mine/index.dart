@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 
 import '../../api/login.dart';
+import '../../api/user_info.dart';
 import '../../controllers/user_info_controller.dart';
 import '../../utils/sputils.dart';
 
@@ -35,12 +36,42 @@ class MineIndex extends StatefulWidget {
 
 class _MineIndexState extends State<MineIndex> {
   bool _hideHealthInfo = false;
+  List<Map<String, dynamic>> _dailyIntakeRecords = [];
+  bool _loadingDailyIntake = false;
 
   @override
   void initState() {
     super.initState();
     _hideHealthInfo = GetStorage().read(_hideHealthKey) ?? false;
     UserInfoController.to.fetchWeightRecords();
+    _fetchDailyIntakeHistory();
+  }
+
+  Future<void> _fetchDailyIntakeHistory() async {
+    if (!mounted) return;
+    setState(() => _loadingDailyIntake = true);
+    final list = <Map<String, dynamic>>[];
+    try {
+      for (int i = 6; i >= 0; i--) {
+        final d = DateTime.now().subtract(Duration(days: i));
+        final dateStr = '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+        try {
+          final resp = await getDailyCalories(dateStr);
+          final data = resp.data;
+          if (data is Map && data['code'] == 200) {
+            final d2 = data['data'];
+            if (d2 is Map) {
+              final m = Map<String, dynamic>.from(d2);
+              m['_date'] = d;
+              list.add(m);
+            }
+          }
+        } catch (_) {}
+      }
+      _dailyIntakeRecords = list;
+    } finally {
+      if (mounted) setState(() => _loadingDailyIntake = false);
+    }
   }
 
   void _toggleHideHealth() {
@@ -289,6 +320,42 @@ class _MineIndexState extends State<MineIndex> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 6),
+                  child: Row(
+                    children: [
+                      Icon(Icons.local_fire_department, size: 18, color: Colors.grey[700]),
+                      const SizedBox(width: 6),
+                      Text('BMR TRACKER', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Obx(() => _buildBmrTrackerCard(c)),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 6),
+                  child: Row(
+                    children: [
+                      Icon(Icons.restaurant_menu, size: 18, color: Colors.grey[700]),
+                      const SizedBox(width: 6),
+                      Text('DAILY INTAKE', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildDailyIntakeCard(),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 6),
                   child: Text('ACCOUNT', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey[700])),
                 ),
               ),
@@ -459,6 +526,116 @@ class _MineIndexState extends State<MineIndex> {
     );
   }
 
+  List<Map<String, dynamic>> _parseBmrRecords(List<Map<String, dynamic>> records) {
+    final list = <Map<String, dynamic>>[];
+    for (final r in records) {
+      final bmr = r['bmr'];
+      final created = r['createdAt']?.toString();
+      if (bmr == null || created == null) continue;
+      double? bmrVal;
+      if (bmr is num) bmrVal = bmr.toDouble();
+      else bmrVal = double.tryParse(bmr.toString());
+      if (bmrVal == null) continue;
+      DateTime? dt;
+      try {
+        dt = DateTime.parse(created);
+      } catch (_) {}
+      if (dt == null) continue;
+      list.add({'bmr': bmrVal, 'date': dt, 'year': dt.year, 'month': dt.month});
+    }
+    list.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
+    return list;
+  }
+
+  Widget _buildBmrTrackerCard(UserInfoController c) {
+    final records = c.weightRecords;
+    final parsed = _parseBmrRecords(records);
+    final currentBmr = c.bmr;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Current BMR', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                  Text(currentBmr != null ? '${currentBmr.toStringAsFixed(0)} kcal/day' : '—', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 120,
+            child: parsed.isEmpty
+                ? Center(
+                    child: Text(
+                      'No BMR records yet.\nUpdate your profile to track BMR.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    ),
+                  )
+                : _BmrLineChart(records: parsed),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDailyIntakeCard() {
+    final parsed = _dailyIntakeRecords
+        .map((r) {
+          final d = r['_date'] as DateTime? ?? r['recordDate'];
+          DateTime? dt;
+          if (d is DateTime) dt = d;
+          else if (d != null) dt = DateTime.tryParse(d.toString());
+          final kcal = (r['energyKcal'] ?? 0) as num;
+          return dt != null ? {'date': dt, 'kcal': kcal.toDouble()} : null;
+        })
+        .whereType<Map<String, dynamic>>()
+        .toList();
+    parsed.sort((a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Last 7 days', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 120,
+            child: _loadingDailyIntake
+                ? const Center(child: CircularProgressIndicator())
+                : parsed.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No intake data yet.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        ),
+                      )
+                    : _DailyIntakeLineChart(records: parsed),
+          ),
+        ],
+      ),
+    );
+  }
+
   List<Map<String, dynamic>> _parseWeightRecords(List<Map<String, dynamic>> records) {
     final list = <Map<String, dynamic>>[];
     for (final r in records) {
@@ -541,6 +718,120 @@ class _DecorativeCurvesPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class _BmrLineChart extends StatelessWidget {
+  final List<Map<String, dynamic>> records;
+
+  const _BmrLineChart({required this.records});
+
+  @override
+  Widget build(BuildContext context) {
+    if (records.isEmpty) return const SizedBox.shrink();
+    final spots = records.asMap().entries.map((e) => FlSpot(e.key.toDouble(), (e.value['bmr'] as num).toDouble())).toList();
+    final vals = records.map((r) => (r['bmr'] as num).toDouble()).toList();
+    final minY = (vals.reduce((a, b) => a < b ? a : b) - 50).clamp(0.0, double.infinity);
+    final maxY = vals.reduce((a, b) => a > b ? a : b) + 50;
+
+    return LineChart(
+      LineChartData(
+        minX: 0,
+        maxX: (spots.length - 1).toDouble().clamp(1, double.infinity),
+        minY: minY,
+        maxY: maxY,
+        gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: (maxY - minY) / 4),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 36, getTitlesWidget: (v, _) => Text(v.toStringAsFixed(0), style: TextStyle(fontSize: 10, color: Colors.grey[600])))),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (v, _) {
+                final i = v.toInt();
+                if (i >= 0 && i < records.length) {
+                  final d = records[i]['date'] as DateTime;
+                  return Padding(padding: const EdgeInsets.only(top: 8), child: Text('${d.month}/${d.day}', style: TextStyle(fontSize: 10, color: Colors.grey[600])));
+                }
+                return const SizedBox.shrink();
+              },
+              reservedSize: 24,
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            color: _orange,
+            barWidth: 2.5,
+            isStrokeCapRound: true,
+            dotData: FlDotData(show: true, getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(radius: 3, color: _orange, strokeWidth: 0)),
+            belowBarData: BarAreaData(show: true, color: _orange.withOpacity(0.15)),
+          ),
+        ],
+      ),
+      duration: const Duration(milliseconds: 200),
+    );
+  }
+}
+
+class _DailyIntakeLineChart extends StatelessWidget {
+  final List<Map<String, dynamic>> records;
+
+  const _DailyIntakeLineChart({required this.records});
+
+  @override
+  Widget build(BuildContext context) {
+    if (records.isEmpty) return const SizedBox.shrink();
+    final spots = records.asMap().entries.map((e) => FlSpot(e.key.toDouble(), (e.value['kcal'] as num).toDouble())).toList();
+    final vals = records.map((r) => (r['kcal'] as num).toDouble()).toList();
+    final minY = 0.0;
+    final maxY = (vals.reduce((a, b) => a > b ? a : b) + 100).clamp(100.0, double.infinity);
+
+    return LineChart(
+      LineChartData(
+        minX: 0,
+        maxX: (spots.length - 1).toDouble().clamp(1, double.infinity),
+        minY: minY,
+        maxY: maxY,
+        gridData: FlGridData(show: true, drawVerticalLine: false, horizontalInterval: (maxY - minY) / 4),
+        titlesData: FlTitlesData(
+          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 36, getTitlesWidget: (v, _) => Text(v.toStringAsFixed(0), style: TextStyle(fontSize: 10, color: Colors.grey[600])))),
+          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (v, _) {
+                final i = v.toInt();
+                if (i >= 0 && i < records.length) {
+                  final d = records[i]['date'] as DateTime;
+                  return Padding(padding: const EdgeInsets.only(top: 8), child: Text('${d.month}/${d.day}', style: TextStyle(fontSize: 10, color: Colors.grey[600])));
+                }
+                return const SizedBox.shrink();
+              },
+              reservedSize: 24,
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        lineBarsData: [
+          LineChartBarData(
+            spots: spots,
+            isCurved: true,
+            color: _green,
+            barWidth: 2.5,
+            isStrokeCapRound: true,
+            dotData: FlDotData(show: true, getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(radius: 3, color: _green, strokeWidth: 0)),
+            belowBarData: BarAreaData(show: true, color: _lightGreen.withOpacity(0.5)),
+          ),
+        ],
+      ),
+      duration: const Duration(milliseconds: 200),
+    );
+  }
 }
 
 class _WeightLineChart extends StatelessWidget {

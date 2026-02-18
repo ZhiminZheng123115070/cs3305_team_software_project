@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../api/product.dart';
+import '../../api/user_info.dart';
+import '../../controllers/user_info_controller.dart';
 import '../../models/storage_item_model.dart';
 import '../../utils/sputils.dart';
 
@@ -10,6 +13,7 @@ const int kDefaultCalorieTarget = 2000;
 const Color _lightGreen = Color(0xFFE8F5E9);
 const Color _green = Color(0xFF4CAF50);
 const Color _orange = Color(0xFFFF9800);
+const Color _red = Color(0xFFE53935);
 
 class HomeIndex extends StatefulWidget {
   const HomeIndex({Key? key}) : super(key: key);
@@ -23,28 +27,94 @@ class _HomeIndexState extends State<HomeIndex> {
   List<StorageItem> _storageItems = [];
   bool _loadingStorage = false;
 
+  /// Diet log from API (consumed history)
+  List<Map<String, dynamic>> _dietLogItems = [];
+  bool _loadingDietLog = false;
+
+  /// Daily intake from API (energyKcal, targetKcal, proteins, carbohydrates, fat)
+  Map<String, dynamic>? _dailyData;
+  bool _loadingDaily = false;
+
   int get _calorieTarget => SPUtil().get<int>(kDailyCalorieTargetKey) ?? kDefaultCalorieTarget;
 
-  /// Consumed items from app_user_storage: consumption < 1 means something was consumed
-  List<StorageItem> get _consumedItems => _storageItems.where((e) => e.consumption < 1).toList();
+  /// Diet log entries for selected date (filtered by eatenAt)
+  List<Map<String, dynamic>> get _consumedItems {
+    final items = <Map<String, dynamic>>[];
+    for (final e in _dietLogItems) {
+      final eaten = e['eatenAt']?.toString();
+      if (eaten == null) continue;
+      DateTime? dt;
+      try {
+        dt = DateTime.parse(eaten);
+      } catch (_) {}
+      if (dt != null &&
+          dt.year == _selectedDate.year &&
+          dt.month == _selectedDate.month &&
+          dt.day == _selectedDate.day) {
+        items.add(e);
+      }
+    }
+    return items;
+  }
 
-  /// Total calories * consumption ratio (stored as decimal)
-  double get _totalCalories => _consumedItems.fold(0.0, (s, e) {
-    final ratio = 1 - e.consumption;
-    return s + (e.energyKcal ?? 0).toDouble() * ratio;
-  });
-  double get _totalProtein => _consumedItems.fold(0.0, (s, e) {
-    final ratio = 1 - e.consumption;
-    return s + (e.proteins ?? 0).toDouble() * ratio;
-  });
-  double get _totalCarbs => _consumedItems.fold(0.0, (s, e) {
-    final ratio = 1 - e.consumption;
-    return s + (e.carbohydrates ?? 0).toDouble() * ratio;
-  });
-  double get _totalFat => _consumedItems.fold(0.0, (s, e) {
-    final ratio = 1 - e.consumption;
-    return s + (e.fat ?? 0).toDouble() * ratio;
-  });
+  /// Fallback from diet log when daily-calories API has no data
+  double get _fallbackCalories => _consumedItems.fold(0.0, (s, e) => s + ((e['energyKcal'] ?? 0) as num).toDouble());
+  double get _fallbackProtein => _consumedItems.fold(0.0, (s, e) => s + ((e['proteins'] ?? 0) as num).toDouble());
+  double get _fallbackCarbs => _dailyData?['carbohydrates'] != null ? (_dailyData!['carbohydrates'] as num).toDouble() : 0.0;
+  double get _fallbackFat => _dailyData?['fat'] != null ? (_dailyData!['fat'] as num).toDouble() : 0.0;
+
+  /// Display values: prefer API daily-calories, else fallback
+  double get _displayCalories => _dailyData?['energyKcal'] != null ? (_dailyData!['energyKcal'] as num).toDouble() : _fallbackCalories;
+  double get _targetKcal {
+    if (_dailyData?['targetKcal'] != null) return (_dailyData!['targetKcal'] as num).toDouble();
+    return (UserInfoController.to.bmr ?? _calorieTarget).toDouble();
+  }
+  double get _displayProtein => _dailyData?['proteins'] != null ? (_dailyData!['proteins'] as num).toDouble() : _fallbackProtein;
+  double get _displayCarbs => _dailyData?['carbohydrates'] != null ? (_dailyData!['carbohydrates'] as num).toDouble() : _fallbackCarbs;
+  double get _displayFat => _dailyData?['fat'] != null ? (_dailyData!['fat'] as num).toDouble() : _fallbackFat;
+
+  Future<void> _fetchDailyCalories() async {
+    if (!mounted) return;
+    setState(() => _loadingDaily = true);
+    try {
+      final dateStr = '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}';
+      final resp = await getDailyCalories(dateStr);
+      final data = resp.data;
+      if (data is Map && data['code'] == 200) {
+        final d = data['data'];
+        _dailyData = d is Map ? Map<String, dynamic>.from(d) : null;
+      } else {
+        _dailyData = null;
+      }
+    } catch (_) {
+      _dailyData = null;
+    } finally {
+      if (mounted) setState(() => _loadingDaily = false);
+    }
+  }
+
+  Future<void> _fetchDietLog() async {
+    if (!mounted) return;
+    setState(() => _loadingDietLog = true);
+    try {
+      final resp = await getDietLog();
+      final data = resp.data;
+      if (data is Map && data['code'] == 200) {
+        final list = data['data'];
+        if (list is List) {
+          _dietLogItems = list.map((e) => e is Map ? Map<String, dynamic>.from(e) : <String, dynamic>{}).toList();
+        } else {
+          _dietLogItems = [];
+        }
+      } else {
+        _dietLogItems = [];
+      }
+    } catch (_) {
+      _dietLogItems = [];
+    } finally {
+      if (mounted) setState(() => _loadingDietLog = false);
+    }
+  }
 
   Future<void> _fetchStorage() async {
     setState(() => _loadingStorage = true);
@@ -75,6 +145,8 @@ class _HomeIndexState extends State<HomeIndex> {
   void initState() {
     super.initState();
     _fetchStorage();
+    _fetchDietLog();
+    _fetchDailyCalories();
   }
 
   List<DateTime> _weekDays() {
@@ -195,8 +267,10 @@ class _HomeIndexState extends State<HomeIndex> {
         totalFat: totalFat,
         onAdd: (portion) async {
           try {
-            await updateStorage(item.storageId, portion);
+            await addDietLog(item.storageId, portion);
             _fetchStorage();
+            _fetchDietLog();
+            _fetchDailyCalories();
           } catch (_) {}
         },
       ),
@@ -239,7 +313,10 @@ class _HomeIndexState extends State<HomeIndex> {
                   children: weekDays.map((d) {
                     final isSelected = d.day == _selectedDate.day && d.month == _selectedDate.month && d.year == _selectedDate.year;
                     return GestureDetector(
-                      onTap: () => setState(() => _selectedDate = d),
+                      onTap: () => setState(() {
+                        _selectedDate = d;
+                        _fetchDailyCalories();
+                      }),
                       child: Column(
                         children: [
                           Text(dayLabels[d.weekday % 7], style: TextStyle(fontSize: 12, color: Colors.grey[600])),
@@ -272,32 +349,16 @@ class _HomeIndexState extends State<HomeIndex> {
                 ),
                 child: Row(
                   children: [
-                    Container(
-                      width: 90,
-                      height: 90,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _lightGreen, width: 2),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6)],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(_totalCalories.toStringAsFixed(1), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                          Text('kcal', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                        ],
-                      ),
-                    ),
+                    _buildCalorieCircle(),
                     const SizedBox(width: 20),
                     Expanded(
                       child: Column(
                         children: [
-                          _macroRow('Protein', _totalProtein, 50.0),
+                          _macroRow('Protein', _displayProtein, 50.0),
                           const SizedBox(height: 8),
-                          _macroRow('Carbs', _totalCarbs, 250.0),
+                          _macroRow('Carbs', _displayCarbs, 250.0),
                           const SizedBox(height: 8),
-                          _macroRow('Fat', _totalFat, 65.0),
+                          _macroRow('Fat', _displayFat, 65.0),
                         ],
                       ),
                     ),
@@ -347,9 +408,11 @@ class _HomeIndexState extends State<HomeIndex> {
                         itemCount: _consumedItems.length,
                         itemBuilder: (_, i) {
                           final item = _consumedItems[i];
-                          final ratio = 1 - item.consumption;
-                          final consumedPct = (ratio * 100).round();
-                          final calories = (item.energyKcal ?? 0).toDouble() * ratio;
+                          final rate = (item['consumptionRate'] ?? 0) as num;
+                          final consumedPct = (rate * 100).round();
+                          final calories = (item['energyKcal'] ?? 0) as num;
+                          final imageUrl = item['imageUrl']?.toString();
+                          final name = item['name']?.toString() ?? '—';
                           return Container(
                             margin: const EdgeInsets.only(bottom: 8),
                             padding: const EdgeInsets.all(12),
@@ -360,10 +423,10 @@ class _HomeIndexState extends State<HomeIndex> {
                             ),
                             child: Row(
                               children: [
-                                if (item.imageUrl != null && item.imageUrl!.isNotEmpty)
+                                if (imageUrl != null && imageUrl.isNotEmpty)
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
-                                    child: Image.network(item.imageUrl!, width: 48, height: 48, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholderImage()),
+                                    child: Image.network(imageUrl, width: 48, height: 48, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholderImage()),
                                   )
                                 else
                                   _placeholderImage(),
@@ -372,9 +435,8 @@ class _HomeIndexState extends State<HomeIndex> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(item.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                      if (item.brand != null) Text(item.brand!, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                                      Text('$consumedPct% consumed • ${calories.toStringAsFixed(1)} kcal', style: TextStyle(fontSize: 12, color: _green)),
+                                      Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      Text('$consumedPct% consumed • ${(calories as num).toStringAsFixed(1)} kcal', style: TextStyle(fontSize: 12, color: _green)),
                                     ],
                                   ),
                                 ),
@@ -392,6 +454,51 @@ class _HomeIndexState extends State<HomeIndex> {
         onPressed: _showWhatDidYouEat,
         backgroundColor: _green,
         child: const Icon(Icons.add, color: Colors.white, size: 32),
+      ),
+    );
+  }
+
+  Widget _buildCalorieCircle() {
+    final target = _targetKcal;
+    final intake = _displayCalories;
+    final progress = target > 0 ? (intake / target).clamp(0.0, 1.0) : 0.0;
+    final isOver = intake > target;
+    final ringColor = isOver ? _red : _green;
+
+    return SizedBox(
+      width: 96,
+      height: 96,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            width: 96,
+            height: 96,
+            child: CircularProgressIndicator(
+              value: progress,
+              strokeWidth: 6,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: AlwaysStoppedAnimation(ringColor),
+            ),
+          ),
+          Container(
+            width: 84,
+            height: 84,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: _lightGreen, width: 2),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 6)],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(intake.toStringAsFixed(1), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text('kcal', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
