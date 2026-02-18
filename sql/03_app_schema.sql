@@ -309,8 +309,6 @@ CREATE TABLE app_user_info_record (
   INDEX idx_user_created (user_id, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User profile history (snapshots)';
 
-
---  User nutrition record (daily/period totals)
 DROP TABLE IF EXISTS app_user_info_nutrition_record;
 CREATE TABLE app_user_info_nutrition_record (
   id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -323,8 +321,9 @@ CREATE TABLE app_user_info_nutrition_record (
   fiber           DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
   proteins        DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
   salt            DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
-  recorded_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  INDEX idx_user_recorded (user_id, recorded_at)
+  updated_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  record_date     DATE            NOT NULL DEFAULT (CURDATE()),
+  INDEX idx_user_recorded (user_id, record_date)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User nutrition record (daily/period totals)';
 
 
