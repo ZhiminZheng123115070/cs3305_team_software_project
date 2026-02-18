@@ -11,7 +11,7 @@ var addOrder = (int cartId) async {
 
 var getOrderList = () async {
   return await DioRequest().httpRequest(
-    "/user/product/order/list",
+    "/user/product/order",
     true,
     "get",
   );
@@ -50,6 +50,26 @@ var deleteCart = (int cartId) async {
     true,
     "delete",
     queryParameters: {"cart_id": cartId},
+  );
+};
+
+/// GET /user/product/storage/list - pantry/storage items (app_user_storage)
+var getStorageList = ({int pageNum = 1, int pageSize = 100}) async {
+  return await DioRequest().httpRequest(
+    "/user/product/storage/list",
+    true,
+    "get",
+    queryParameters: {"pageNum": pageNum, "pageSize": pageSize},
+  );
+};
+
+/// PUT /user/product/storage - update consumption (subtract portion consumed)
+var updateStorage = (int storageId, double consumptionRate) async {
+  return await DioRequest().httpRequest(
+    "/user/product/storage",
+    true,
+    "put",
+    queryParameters: {"storage_id": storageId, "consumption_rate": consumptionRate},
   );
 };
 
