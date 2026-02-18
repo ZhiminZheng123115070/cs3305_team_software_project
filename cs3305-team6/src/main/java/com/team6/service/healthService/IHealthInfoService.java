@@ -2,6 +2,7 @@ package com.team6.service.healthService;
 
 import com.team6.pojo.DietLog;
 import com.team6.response.DietLogResponse;
+import com.team6.response.NutritionRecordResponse;
 
 import java.math.BigDecimal;
 
@@ -11,5 +12,7 @@ import java.math.BigDecimal;
  */
 public interface IHealthInfoService {
 
-    public DietLogResponse addDietLog(Long storageId, BigDecimal consumptionRate);
+    DietLogResponse addDietLog(Long storageId, BigDecimal consumptionRate);
+
+    NutritionRecordResponse getDailyCalories(String date);
 }
