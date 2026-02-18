@@ -13,6 +13,7 @@ public class DietLog {
     private Long userId;
     private Long productId;
     private BigDecimal caloriesKcal;
+    private BigDecimal consumptionRate;
     private LocalDateTime eatenAt;
 
     public Long getId() {
@@ -45,6 +46,14 @@ public class DietLog {
 
     public void setCaloriesKcal(BigDecimal caloriesKcal) {
         this.caloriesKcal = caloriesKcal;
+    }
+
+    public BigDecimal getConsumptionRate() {
+        return consumptionRate;
+    }
+
+    public void setConsumptionRate(BigDecimal consumptionRate) {
+        this.consumptionRate = consumptionRate;
     }
 
     public LocalDateTime getEatenAt() {

@@ -2,6 +2,9 @@ package com.team6.mapper;
 
 import com.team6.pojo.DietLog;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * @author zhimin
@@ -16,4 +19,8 @@ public interface DietLogMapper {
     }
 
     int insertDietLog(DietLog log);
+
+    List<DietLog> selectByUserIdOrderByEatenAtDesc(@Param("userId") Long userId);
+
+    List<com.team6.response.DietLogResponse> selectByUserIdOrderByEatenAtDescWithProduct(@Param("userId") Long userId);
 }

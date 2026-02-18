@@ -5,6 +5,7 @@ import com.team6.response.DietLogResponse;
 import com.team6.response.NutritionRecordResponse;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author zhimin
@@ -15,4 +16,6 @@ public interface IHealthInfoService {
     DietLogResponse addDietLog(Long storageId, BigDecimal consumptionRate);
 
     NutritionRecordResponse getDailyCalories(String date);
+
+    List<DietLogResponse> getDietLogList();
 }

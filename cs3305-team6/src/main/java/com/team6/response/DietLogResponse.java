@@ -1,7 +1,6 @@
 package com.team6.response;
 
 import com.team6.pojo.DietLog;
-import com.team6.pojo.Storage;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -14,7 +13,11 @@ import java.time.LocalDateTime;
 public class DietLogResponse {
     private Long id;
     private Long productId;
-    private BigDecimal caloriesKcal;
+    private String imageUrl;
+    private String name;
+    private BigDecimal energyKcal;
+    private BigDecimal proteins;
+    private BigDecimal consumptionRate;
     private LocalDateTime eatenAt;
 
     public Long getId() {
@@ -33,12 +36,44 @@ public class DietLogResponse {
         this.productId = productId;
     }
 
-    public BigDecimal getCaloriesKcal() {
-        return caloriesKcal;
+    public String getImageUrl() {
+        return imageUrl;
     }
 
-    public void setCaloriesKcal(BigDecimal caloriesKcal) {
-        this.caloriesKcal = caloriesKcal;
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public BigDecimal getEnergyKcal() {
+        return energyKcal;
+    }
+
+    public void setEnergyKcal(BigDecimal energyKcal) {
+        this.energyKcal = energyKcal;
+    }
+
+    public BigDecimal getProteins() {
+        return proteins;
+    }
+
+    public void setProteins(BigDecimal proteins) {
+        this.proteins = proteins;
+    }
+
+    public BigDecimal getConsumptionRate() {
+        return consumptionRate;
+    }
+
+    public void setConsumptionRate(BigDecimal consumptionRate) {
+        this.consumptionRate = consumptionRate;
     }
 
     public LocalDateTime getEatenAt() {
@@ -49,22 +84,13 @@ public class DietLogResponse {
         this.eatenAt = eatenAt;
     }
 
-    /**
-     * Build response from DietLog entity.
-     */
     public static DietLogResponse from(DietLog log) {
         if (log == null) return null;
         DietLogResponse r = new DietLogResponse();
         r.setId(log.getId());
         r.setProductId(log.getProductId());
-        r.setCaloriesKcal(log.getCaloriesKcal());
+        r.setConsumptionRate(log.getConsumptionRate());
         r.setEatenAt(log.getEatenAt());
         return r;
     }
-
-    /**
-     * Build response from Storage (e.g. when user clicks add storage to log).
-     * id not set (auto-generated on insert). eatenAt = time of the add action (now).
-     */
-
 }
