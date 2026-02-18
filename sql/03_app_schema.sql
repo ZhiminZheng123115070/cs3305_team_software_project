@@ -262,25 +262,80 @@ CREATE TABLE app_unknown_barcodes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Unknown barcodes (OFF not found cache)';
 	
-DROP TABLE IF EXISTS app_user;
+	
+-- User health/profile (current) + nutrition goals
+DROP TABLE IF EXISTS app_user_info;
+CREATE TABLE app_user_info (
+  user_id BIGINT NOT NULL PRIMARY KEY COMMENT '= sys_user.user_id',
+  nickname VARCHAR(60) DEFAULT NULL,
 
-CREATE TABLE app_user (
-  user_id           BIGINT       NOT NULL PRIMARY KEY COMMENT '= sys_user.user_id',
-  display_name      VARCHAR(64)  DEFAULT NULL COMMENT 'Display name (Mine screen)',
-  gender            VARCHAR(8)   DEFAULT NULL COMMENT 'Male / Female / Other',
-  age               TINYINT UNSIGNED DEFAULT NULL COMMENT 'Age',
-  weight_kg         DECIMAL(5,2) DEFAULT NULL COMMENT 'Weight in kg',
-  height_m          DECIMAL(3,2) DEFAULT NULL COMMENT 'Height in meters',
-  bmi               DECIMAL(4,2) DEFAULT NULL COMMENT 'BMI = weight_kg / height_m²',
-  avatar_url        VARCHAR(512) DEFAULT NULL COMMENT 'Avatar URL',
+  weight DECIMAL(5,2) NOT NULL COMMENT 'kg',
+  height DECIMAL(5,2) NOT NULL COMMENT 'cm',
+  age TINYINT UNSIGNED DEFAULT NULL COMMENT 'age in years',
+  gender TINYINT(1) DEFAULT NULL COMMENT '0=Male, 1=Female',
+  bmi DECIMAL(5,2) NOT NULL,
+  bmr DECIMAL(7,2) DEFAULT NULL COMMENT 'Basal metabolic rate, kcal/day (Mifflin-St Jeor)',
 
-  daily_calorie_goal INT UNSIGNED DEFAULT 2000 COMMENT 'Daily calorie goal (kcal)',
+  energy_kcal DECIMAL(6,2) DEFAULT NULL,
+  fat DECIMAL(5,2) DEFAULT NULL,
+  saturated_fat DECIMAL(5,2) DEFAULT NULL,
+  carbohydrates DECIMAL(5,2) DEFAULT NULL,
+  sugars DECIMAL(5,2) DEFAULT NULL,
+  fiber DECIMAL(5,2) DEFAULT NULL,
+  proteins DECIMAL(5,2) DEFAULT NULL,
+  salt DECIMAL(5,2) DEFAULT NULL,
 
-  bind_phone        VARCHAR(20)  DEFAULT NULL COMMENT 'Bound phone number',
-  bind_google       VARCHAR(128) DEFAULT NULL COMMENT 'Bound Google unique id',
+  status TINYINT(1) NOT NULL DEFAULT 1 COMMENT '0=hidden, 1=visible (user toggles)',
 
-  created_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User profile (current) + nutrition goals';
 
-  CONSTRAINT fk_app_user_sys_user FOREIGN KEY (user_id) REFERENCES sys_user(user_id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='App user profile (1:1 with sys_user)';
+
+--  User profile history 
+DROP TABLE IF EXISTS app_user_info_record;
+CREATE TABLE app_user_info_record (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id BIGINT NOT NULL COMMENT '= sys_user.user_id',
+  nickname VARCHAR(60) DEFAULT NULL,
+  weight DECIMAL(5,2) NOT NULL COMMENT 'kg',
+  height DECIMAL(5,2) NOT NULL COMMENT 'cm',
+  age TINYINT UNSIGNED DEFAULT NULL COMMENT 'age in years',
+  gender TINYINT(1) DEFAULT NULL COMMENT '0=Male, 1=Female',
+  bmi DECIMAL(5,2) NOT NULL,
+  bmr DECIMAL(7,2) DEFAULT NULL COMMENT 'Basal metabolic rate, kcal/day (Mifflin-St Jeor)',
+  status TINYINT(1) NOT NULL DEFAULT 1 COMMENT '0=hidden, 1=visible (user toggles)',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user_created (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User profile history (snapshots)';
+
+
+--  User nutrition record (daily/period totals)
+DROP TABLE IF EXISTS app_user_info_nutrition_record;
+CREATE TABLE app_user_info_nutrition_record (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id         BIGINT          NOT NULL COMMENT '= sys_user.user_id',
+  energy_kcal     DECIMAL(6,2)    DEFAULT NULL COMMENT 'kcal',
+  fat             DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  saturated_fat   DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  carbohydrates   DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  sugars          DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  fiber           DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  proteins        DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  salt            DECIMAL(5,2)    DEFAULT NULL COMMENT 'g',
+  recorded_at     DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_user_recorded (user_id, recorded_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User nutrition record (daily/period totals)';
+
+
+-- User diet log (what was eaten)
+DROP TABLE IF EXISTS app_user_diet_log;
+CREATE TABLE app_user_diet_log (
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id       BIGINT          NOT NULL COMMENT '= sys_user.user_id',
+  product_id    BIGINT          NOT NULL COMMENT 'FK to app_products or food table',
+  calories_kcal DECIMAL(7,2)    NOT NULL COMMENT 'Calories in kcal',
+  eaten_at      DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'When eaten',
+  INDEX idx_user_eaten (user_id, eaten_at),
+  INDEX idx_product (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='User diet log (what was eaten)';
