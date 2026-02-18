@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../controllers/user_info_controller.dart';
 import 'cart/index.dart';
 import 'home/index.dart';
 import 'mine/index.dart';
@@ -14,6 +16,15 @@ class PageIndex extends StatefulWidget {
 
 class _PageIndexState extends State<PageIndex> {
   int _index_current = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Get.put(UserInfoController(), permanent: true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      UserInfoController.to.checkAndShowPopupIfEmpty();
+    });
+  }
 
   final List _pageList = [
     const HomeIndex(),
