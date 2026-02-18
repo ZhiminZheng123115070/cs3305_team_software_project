@@ -6,9 +6,12 @@ import com.team6.mapper.NutritionRecordMapper;
 import com.team6.pojo.DietLog;
 import com.team6.pojo.NutritionRecord;
 import com.team6.response.DietLogResponse;
+import com.team6.response.NutritionRecordResponse;
 import com.team6.response.StorageResponse;
+import com.team6.response.UserInfoResponse;
 import com.ruoyi.common.exception.ServiceException;
 import com.team6.service.healthService.IHealthInfoService;
+import com.team6.service.healthService.IUserInfoService;
 import com.team6.service.productService.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +39,11 @@ public class HealthInfoService implements IHealthInfoService {
     @Autowired
     private NutritionRecordMapper nutritionRecordMapper;
 
-    /** 安全计算 value * rate，null 视为 0，结果保留 2 位小数 */
+    @Autowired
+    private IUserInfoService userInfoService;
+
+    private static final BigDecimal DEFAULT_DAILY_TARGET_KCAL = new BigDecimal("2000");
+
     private static BigDecimal multiplyScale(BigDecimal value, BigDecimal rate) {
         if (value == null || rate == null) return BigDecimal.ZERO;
         return value.multiply(rate).setScale(2, RoundingMode.HALF_UP);
@@ -51,7 +58,6 @@ public class HealthInfoService implements IHealthInfoService {
         if (storage == null) {
             throw new ServiceException("Storage not found");
         }
-        // 越权校验：只能操作自己的库存
         if (!userId.equals(storage.getUserId())) {
             throw new ServiceException("Storage does not belong to current user");
         }
@@ -69,7 +75,6 @@ public class HealthInfoService implements IHealthInfoService {
         BigDecimal energyKcal = storage.getEnergyKcal() != null ? storage.getEnergyKcal() : BigDecimal.ZERO;
         BigDecimal totalKcal = energyKcal.multiply(consumptionRate).setScale(2, RoundingMode.HALF_UP);
 
-        // 先写饮食记录和营养记录，最后再扣库存，避免扣了库存但写库失败导致数据不一致
         NutritionRecord record = new NutritionRecord();
         record.setUserId(userId);
         record.setRecordDate(LocalDate.now());
@@ -93,5 +98,40 @@ public class HealthInfoService implements IHealthInfoService {
         productService.updateStorage(storageId, consumptionRate);
 
         return DietLogResponse.from(log);
+    }
+
+    @Override
+    public NutritionRecordResponse getDailyCalories(String date) {
+        Long userId = SecurityUtils.getUserId();
+        LocalDate recordDate = (date == null || date.isEmpty()) ? LocalDate.now() : LocalDate.parse(date);
+
+        NutritionRecord sum = nutritionRecordMapper.sumByUserIdAndRecordDate(userId, recordDate);
+        NutritionRecordResponse resp = new NutritionRecordResponse();
+        resp.setRecordDate(recordDate);
+        resp.setEnergyKcal(toScale(sum != null && sum.getEnergyKcal() != null ? sum.getEnergyKcal() : BigDecimal.ZERO));
+        resp.setFat(toScale(sum != null && sum.getFat() != null ? sum.getFat() : BigDecimal.ZERO));
+        resp.setSaturatedFat(toScale(sum != null && sum.getSaturatedFat() != null ? sum.getSaturatedFat() : BigDecimal.ZERO));
+        resp.setCarbohydrates(toScale(sum != null && sum.getCarbohydrates() != null ? sum.getCarbohydrates() : BigDecimal.ZERO));
+        resp.setSugars(toScale(sum != null && sum.getSugars() != null ? sum.getSugars() : BigDecimal.ZERO));
+        resp.setFiber(toScale(sum != null && sum.getFiber() != null ? sum.getFiber() : BigDecimal.ZERO));
+        resp.setProteins(toScale(sum != null && sum.getProteins() != null ? sum.getProteins() : BigDecimal.ZERO));
+        resp.setSalt(toScale(sum != null && sum.getSalt() != null ? sum.getSalt() : BigDecimal.ZERO));
+
+        BigDecimal target = DEFAULT_DAILY_TARGET_KCAL;
+        UserInfoResponse userInfo = userInfoService.getUserInfoByUserId();
+        if (userInfo != null && userInfo.getBmr() != null && userInfo.getBmr().compareTo(BigDecimal.ZERO) > 0) {
+            target = userInfo.getBmr();
+        }
+        resp.setTargetKcal(target.setScale(2, RoundingMode.HALF_UP));
+        BigDecimal consumed = resp.getEnergyKcal();
+        int percentage = target.compareTo(BigDecimal.ZERO) > 0
+                ? consumed.multiply(BigDecimal.valueOf(100)).divide(target, 0, RoundingMode.HALF_UP).intValue()
+                : 0;
+        resp.setPercentage(Math.min(percentage, 100));
+        return resp;
+    }
+
+    private static BigDecimal toScale(BigDecimal v) {
+        return v == null ? BigDecimal.ZERO : v.setScale(2, RoundingMode.HALF_UP);
     }
 }

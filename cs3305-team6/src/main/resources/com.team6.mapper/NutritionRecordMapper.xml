@@ -24,4 +24,34 @@
         VALUES (#{userId}, #{energyKcal}, #{fat}, #{saturatedFat}, #{carbohydrates}, #{sugars}, #{fiber}, #{proteins}, #{salt}, CURRENT_TIMESTAMP, #{recordDate})
     </insert>
 
+    <select id="sumEnergyKcalByUserIdAndRecordDate" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(energy_kcal), 0)
+        FROM app_user_info_nutrition_record
+        WHERE user_id = #{userId} AND record_date = #{recordDate}
+    </select>
+
+    <resultMap id="nutritionRecordSumResultMap" type="com.team6.pojo.NutritionRecord">
+        <result column="energy_kcal" property="energyKcal"/>
+        <result column="fat" property="fat"/>
+        <result column="saturated_fat" property="saturatedFat"/>
+        <result column="carbohydrates" property="carbohydrates"/>
+        <result column="sugars" property="sugars"/>
+        <result column="fiber" property="fiber"/>
+        <result column="proteins" property="proteins"/>
+        <result column="salt" property="salt"/>
+    </resultMap>
+    <select id="sumByUserIdAndRecordDate" resultMap="nutritionRecordSumResultMap">
+        SELECT
+            COALESCE(SUM(energy_kcal), 0) as energy_kcal,
+            COALESCE(SUM(fat), 0) as fat,
+            COALESCE(SUM(saturated_fat), 0) as saturated_fat,
+            COALESCE(SUM(carbohydrates), 0) as carbohydrates,
+            COALESCE(SUM(sugars), 0) as sugars,
+            COALESCE(SUM(fiber), 0) as fiber,
+            COALESCE(SUM(proteins), 0) as proteins,
+            COALESCE(SUM(salt), 0) as salt
+        FROM app_user_info_nutrition_record
+        WHERE user_id = #{userId} AND record_date = #{recordDate}
+    </select>
+
 </mapper>
