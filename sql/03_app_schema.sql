@@ -215,7 +215,6 @@ CREATE TABLE app_user_storage (
   consumption DECIMAL(10,2) DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_storage_user_product (user_id, product_id),
   KEY idx_user_created (user_id, created_at),
   KEY idx_product (product_id),
   CONSTRAINT fk_storage_user FOREIGN KEY (user_id) REFERENCES sys_user(user_id) ON DELETE CASCADE,
