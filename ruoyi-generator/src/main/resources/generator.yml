@@ -1,0 +1,12 @@
+# Code generation
+gen:
+  # Author
+  author: ruoyi
+  # Default generated package path system needs to be changed to your own module name such as system monitor tool
+  packageName: com.ruoyi.system
+  # Automatically remove table prefix, default is false
+  autoRemovePre: false
+  # Table prefix (generated class names will not include table prefix, multiple separated by commas)
+  tablePrefix: sys_
+  # Whether to allow generated files to overwrite local files (custom path), default is not allowed
+  allowOverwrite: false

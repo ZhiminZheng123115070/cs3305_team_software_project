@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team6.mapper.ProductMapper">
+
+    <resultMap id="productResultMap" type="com.team6.pojo.Product">
+        <id column="product_id" property="productId"/>
+        <result column="barcode" property="barcode"/>
+        <result column="name" property="name"/>
+        <result column="brand" property="brand"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="price" property="price"/>
+        <result column="currency" property="currency"/>
+        <result column="energy_kcal" property="energyKcal"/>
+        <result column="fat" property="fat"/>
+        <result column="saturated_fat" property="saturatedFat"/>
+        <result column="carbohydrates" property="carbohydrates"/>
+        <result column="sugars" property="sugars"/>
+        <result column="fiber" property="fiber"/>
+        <result column="proteins" property="proteins"/>
+        <result column="salt" property="salt"/>
+        <result column="nutri_score" property="nutriScore"/>
+        <result column="source" property="source"/>
+        <result column="source_url" property="sourceUrl"/>
+        <result column="product_status" property="productStatus"/>
+        <result column="last_fetched_at" property="lastFetchedAt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+    </resultMap>
+
+    <select id="getProductBarcode" resultMap="productResultMap">
+        select product_id, barcode, name, brand, image_url, price, currency,
+               energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
+               nutri_score, source, source_url, product_status, last_fetched_at,
+               created_at, updated_at
+        from app_products
+        where barcode = #{barcode}
+        limit 1
+    </select>
+
+    <insert id="insertProduct" parameterType="com.team6.pojo.Product" useGeneratedKeys="true" keyProperty="productId">
+        insert into app_products
+        (
+            barcode,
+            name,
+            brand,
+            image_url,
+            currency,
+            nutri_score,
+            source,
+            source_url,
+            product_status,
+            last_fetched_at
+        )
+        values
+        (
+            #{barcode},
+            #{name},
+            #{brand},
+            #{imageUrl},
+            #{currency},
+            #{nutriScore},
+            #{source},
+            #{sourceUrl},
+            #{productStatus},
+            #{lastFetchedAt}
+        )
+    </insert>
+
+</mapper>

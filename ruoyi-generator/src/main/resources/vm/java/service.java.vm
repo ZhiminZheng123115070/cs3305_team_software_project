@@ -1,0 +1,61 @@
+package ${packageName}.service;
+
+import java.util.List;
+import ${packageName}.domain.${ClassName};
+
+/**
+ * ${functionName} Service Interface
+ * 
+ * @author ${author}
+ * @date ${datetime}
+ */
+public interface I${ClassName}Service 
+{
+    /**
+     * Query ${functionName}
+     * 
+     * @param ${pkColumn.javaField} ${functionName} primary key
+     * @return ${functionName}
+     */
+    public ${ClassName} select${ClassName}By${pkColumn.capJavaField}(${pkColumn.javaType} ${pkColumn.javaField});
+
+    /**
+     * Query ${functionName} list
+     * 
+     * @param ${className} ${functionName}
+     * @return ${functionName} collection
+     */
+    public List<${ClassName}> select${ClassName}List(${ClassName} ${className});
+
+    /**
+     * Add ${functionName}
+     * 
+     * @param ${className} ${functionName}
+     * @return Result
+     */
+    public int insert${ClassName}(${ClassName} ${className});
+
+    /**
+     * Update ${functionName}
+     * 
+     * @param ${className} ${functionName}
+     * @return Result
+     */
+    public int update${ClassName}(${ClassName} ${className});
+
+    /**
+     * Batch delete ${functionName}
+     * 
+     * @param ${pkColumn.javaField}s ${functionName} primary key collection to delete
+     * @return Result
+     */
+    public int delete${ClassName}By${pkColumn.capJavaField}s(${pkColumn.javaType}[] ${pkColumn.javaField}s);
+
+    /**
+     * Delete ${functionName} information
+     * 
+     * @param ${pkColumn.javaField} ${functionName} primary key
+     * @return Result
+     */
+    public int delete${ClassName}By${pkColumn.capJavaField}(${pkColumn.javaType} ${pkColumn.javaField});
+}
