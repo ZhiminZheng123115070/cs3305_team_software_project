@@ -104,14 +104,15 @@ public class ProductService implements IProductService {
             return null;
         }
 
-        // Best-effort cache insert; even if this fails we still return the OFF result.
+        // Best-effort cache insert; if insert fails (e.g. duplicate/race), retry local read.
         try {
             productMapper.insertProduct(offProduct);
             Product inserted = safeGetLocal(barcode);
             return inserted != null ? inserted : offProduct;
         } catch (Exception e) {
             log.warn("Insert OFF product cache failed. barcode={}", barcode, e);
-            return offProduct;
+            Product existing = safeGetLocal(barcode);
+            return existing != null ? existing : offProduct;
         }
     }
 

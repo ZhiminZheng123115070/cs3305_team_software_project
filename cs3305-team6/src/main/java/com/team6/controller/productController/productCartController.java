@@ -2,8 +2,8 @@ package com.team6.controller.productController;
 
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.team6.pojo.Product;
 import com.team6.request.CartListRequest;
-import com.team6.request.ProductSearchRequest;
 import com.team6.service.productService.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -20,15 +20,31 @@ public class productCartController {
     @Autowired
     private IProductService productService;
 
-
-
     @PostMapping()
     public AjaxResult addCart(@RequestParam("product_id") Long productId, @RequestParam(defaultValue = "1") Integer quantity){
-
         if(productService.addCart(productId, quantity) > 0){
             return AjaxResult.success("Add product in Cart successfully");
         }
         return AjaxResult.error("Update product in Cart failure");
+    }
+
+    /**
+     * Add to cart by barcode in one backend flow:
+     * 1) query/cache product by barcode
+     * 2) use resolved product_id to add cart
+     */
+    @PostMapping("/barcode")
+    public AjaxResult addCartByBarcode(@RequestParam("barcode") String barcode,
+                                       @RequestParam(defaultValue = "1") Integer quantity) {
+        Product p = productService.getProductByBarcode(barcode);
+        if (p == null || p.getProductId() == null || p.getProductId() <= 0) {
+            return AjaxResult.error("Product not cached in DB yet");
+        }
+
+        if (productService.addCart(p.getProductId(), quantity) > 0) {
+            return AjaxResult.success("Add product in Cart successfully", p);
+        }
+        return AjaxResult.error("Add product in Cart failure");
     }
 
     @PutMapping()
@@ -46,7 +62,6 @@ public class productCartController {
         }
         return AjaxResult.error("Delete product in Cart failure");
     }
-
 
     @GetMapping("/list")
     public AjaxResult getList(@Validated CartListRequest request){

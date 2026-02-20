@@ -7,14 +7,14 @@ import 'package:ruoyi_app/utils/sputils.dart';
 /// Dio network request configuration table (custom)
 class DioConfig {
   /// Backend base URL by platform:
-  /// - Web: localhost:8080
-  /// - iOS simulator: 127.0.0.1:8080 (use Mac IP on real device if needed)
-  /// - Android emulator: 10.0.2.2:8080
+  /// - Web: localhost:8081
+  /// - iOS simulator: 127.0.0.1:8081 (use Mac IP on real device if needed)
+  /// - Android emulator: 10.0.2.2:8081
   static String get baseURL {
-    if (kIsWeb) return "http://localhost:8080";
-    if (defaultTargetPlatform == TargetPlatform.iOS) return "http://127.0.0.1:8080";
-    if (defaultTargetPlatform == TargetPlatform.android) return "http://10.0.2.2:8080";
-    return "http://localhost:8080";
+    if (kIsWeb) return "http://localhost:8081";
+    if (defaultTargetPlatform == TargetPlatform.iOS) return "http://127.0.0.1:8081";
+    if (defaultTargetPlatform == TargetPlatform.android) return "http://10.0.2.2:8081";
+    return "http://localhost:8081";
   }
   static const timeout = 10000;
 }

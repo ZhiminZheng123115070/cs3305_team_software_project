@@ -1,10 +1,9 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
-// API response wrapper class
 class ApiResponse {
-  final String msg;     // message
-  final int code;       // status code
-  final Product? data;   // product data
+  final String msg;
+  final int code;
+  final Product? data;
 
   ApiResponse({
     required this.msg,
@@ -12,7 +11,6 @@ class ApiResponse {
     this.data,
   });
 
-  // Factory method to create ApiResponse from JSON
   factory ApiResponse.fromJson(Map<String, dynamic> json) {
     return ApiResponse(
       msg: json['msg'] ?? '',
@@ -30,16 +28,20 @@ class ApiResponse {
   }
 }
 
-// Product data class (matches app_products / ProductSearchResponse API)
 class Product {
   final int productId;
   final String barcode;
-  final String productName;  // from API field "name"
+  final String productName;
   final String? brand;
   final String? imageUrl;
-  final num? price;          // from app_products.price
+  final num? price;
   final String? currency;
   final String? nutriScore;
+  final num? energyKcal100g;
+  final num? fat100g;
+  final num? sugars100g;
+  final num? salt100g;
+  final num? proteins100g;
 
   Product({
     required this.productId,
@@ -50,21 +52,38 @@ class Product {
     this.price,
     this.currency,
     this.nutriScore,
+    this.energyKcal100g,
+    this.fat100g,
+    this.sugars100g,
+    this.salt100g,
+    this.proteins100g,
   });
 
-  // Factory method to create Product from JSON (app_products response)
+  static num? _toNum(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    return num.tryParse(v.toString());
+  }
+
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
       productId: (json['productId'] is int)
           ? json['productId'] as int
           : (json['productId'] as num?)?.toInt() ?? 0,
       barcode: json['barcode']?.toString() ?? '',
-      productName: json['name']?.toString() ?? json['productName']?.toString() ?? 'Unknown Product',
+      productName: json['name']?.toString() ??
+          json['productName']?.toString() ??
+          'Unknown Product',
       brand: json['brand']?.toString(),
       imageUrl: json['imageUrl']?.toString(),
-      price: json['price'] != null ? (json['price'] as num) : null,
+      price: _toNum(json['price']),
       currency: json['currency']?.toString(),
       nutriScore: json['nutriScore']?.toString(),
+      energyKcal100g: _toNum(json['energyKcal100g']),
+      fat100g: _toNum(json['fat100g']),
+      sugars100g: _toNum(json['sugars100g']),
+      salt100g: _toNum(json['salt100g']),
+      proteins100g: _toNum(json['proteins100g']),
     );
   }
 
@@ -78,6 +97,11 @@ class Product {
       if (price != null) 'price': price,
       if (currency != null) 'currency': currency,
       if (nutriScore != null) 'nutriScore': nutriScore,
+      if (energyKcal100g != null) 'energyKcal100g': energyKcal100g,
+      if (fat100g != null) 'fat100g': fat100g,
+      if (sugars100g != null) 'sugars100g': sugars100g,
+      if (salt100g != null) 'salt100g': salt100g,
+      if (proteins100g != null) 'proteins100g': proteins100g,
     };
   }
 
@@ -86,22 +110,18 @@ class Product {
   }
 }
 
-// Parse JSON string to ApiResponse object
 ApiResponse apiResponseFromJson(String str) {
   return ApiResponse.fromJson(json.decode(str));
 }
 
-// Convert ApiResponse object to JSON string
 String apiResponseToJson(ApiResponse data) {
   return json.encode(data.toJson());
 }
 
-// Parse JSON string to Product object
 Product productFromJson(String str) {
   return Product.fromJson(json.decode(str));
 }
 
-// Convert Product object to JSON string
 String productToJson(Product data) {
   return json.encode(data.toJson());
 }

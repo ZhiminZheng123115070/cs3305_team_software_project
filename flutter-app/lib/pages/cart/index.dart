@@ -82,6 +82,32 @@ class _CartIndexState extends State<CartIndex> {
     }
   }
 
+  
+  Future<void> _addToCart() async {
+    if (_product == null || _isLoading) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final resp = _product!.productId > 0
+          ? await addProductToCart(_product!.productId, quantity: 1)
+          : await addProductToCartByBarcode(_product!.barcode, quantity: 1);
+
+      final data = resp.data;
+      final ok = resp.statusCode == 200 && data is Map<String, dynamic> && data['code'] == 200;
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ok ? 'Added to cart' : (data?['msg']?.toString() ?? 'Add to cart failed'))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Add to cart failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
   void _clearSearch() {
     _barcodeController.clear();
     setState(() {
@@ -143,11 +169,25 @@ class _CartIndexState extends State<CartIndex> {
             ),
             const SizedBox(height: 32),
             _buildProductInfoCard(),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _clearSearch,
-              icon: const Icon(Icons.search_off),
-              label: const Text('Clear & Search Again'),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _isLoading ? null : _addToCart,
+                    icon: const Icon(Icons.add_shopping_cart),
+                    label: const Text('Add to Cart'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: _clearSearch,
+                    icon: const Icon(Icons.search_off),
+                    label: const Text('Clear & Search Again'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

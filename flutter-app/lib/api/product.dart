@@ -1,14 +1,10 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import '../utils/request.dart';
 import '../models/product_model.dart';
 
-/// Search product by barcode:
-/// 1) Try your backend first (requires token)
-/// 2) If backend doesn't have it, fallback to Open Food Facts (no token)
-///
-/// This keeps the SAME function name/signature so other code won't break.
+/// Backend-first search (kept for UI usage).
+/// If backend fails/unavailable, fallback to OFF for display only.
 var searchProductByBarcode = (String barcode) async {
-  // 1) Try backend first
   try {
     final backendResp = await DioRequest().httpRequest(
       "/user/product/search/barcode",
@@ -17,19 +13,14 @@ var searchProductByBarcode = (String barcode) async {
       queryParameters: {"barcode": barcode},
     );
 
-    // If backend returned something, decide if it's a hit
     if (backendResp.statusCode == 200 && backendResp.data is Map<String, dynamic>) {
       final api = ApiResponse.fromJson(backendResp.data as Map<String, dynamic>);
-
-      // Backend success + has product => return as-is
       if (api.code == 200 && api.data != null) {
         return backendResp;
       }
 
-      // Backend said "not found" or no data => fallback
       final offProduct = await _fetchFromOpenFoodFacts(barcode);
       if (offProduct != null) {
-        // Return in the SAME JSON shape your UI expects
         return Response(
           requestOptions: backendResp.requestOptions,
           statusCode: 200,
@@ -41,11 +32,9 @@ var searchProductByBarcode = (String barcode) async {
         );
       }
 
-      // OFF also not found -> return backend response (keeps msg)
       return backendResp;
     }
 
-    // If backend gave a weird response, fallback anyway
     final offProduct = await _fetchFromOpenFoodFacts(barcode);
     if (offProduct != null) {
       return Response(
@@ -61,7 +50,6 @@ var searchProductByBarcode = (String barcode) async {
 
     return backendResp;
   } catch (_) {
-    // If backend fails (network/auth/etc.), try OFF so scan still works
     final offProduct = await _fetchFromOpenFoodFacts(barcode);
     if (offProduct != null) {
       return Response(
@@ -75,13 +63,38 @@ var searchProductByBarcode = (String barcode) async {
       );
     }
 
-    // Still throw so your Cart shows the error message
     rethrow;
   }
 };
 
-/// Open Food Facts fallback.
-/// API: https://world.openfoodfacts.org/api/v2/product/{barcode}.json
+Future<Response<dynamic>> addProductToCart(int productId, {int quantity = 1}) async {
+  return await DioRequest().httpRequest(
+    "/user/product/cart?product_id=$productId&quantity=$quantity",
+    true,
+    "post",
+  );
+}
+
+/// One-step backend endpoint: resolve/cache by barcode and add to cart.
+Future<Response<dynamic>> addProductToCartByBarcode(String barcode, {int quantity = 1}) async {
+  return await DioRequest().httpRequest(
+    "/user/product/cart/barcode?barcode=$barcode&quantity=$quantity",
+    true,
+    "post",
+  );
+}
+
+num? _readNum(Map<String, dynamic> node, List<String> keys) {
+  for (final k in keys) {
+    final v = node[k];
+    if (v == null) continue;
+    if (v is num) return v;
+    final parsed = num.tryParse(v.toString());
+    if (parsed != null) return parsed;
+  }
+  return null;
+}
+
 Future<Product?> _fetchFromOpenFoodFacts(String barcode) async {
   try {
     final dio = Dio(BaseOptions(
@@ -93,8 +106,7 @@ Future<Product?> _fetchFromOpenFoodFacts(String barcode) async {
     final resp = await dio.get(
       url,
       queryParameters: {
-        // keep it small + fast
-        "fields": "code,product_name,brands,image_url,nutriscore_grade,nutriments,quantity"
+        "fields": "code,product_name,brands,image_url,image_front_url,nutriscore_grade,nutriments,quantity"
       },
     );
 
@@ -109,13 +121,25 @@ Future<Product?> _fetchFromOpenFoodFacts(String barcode) async {
     if (name.isEmpty) return null;
 
     final brand = (productJson["brands"] ?? "").toString().trim();
-    final imageUrl = (productJson["image_url"] ?? "").toString().trim();
+    final imageUrl =
+        ((productJson["image_front_url"] ?? productJson["image_url"]) ?? "")
+            .toString()
+            .trim();
     final nutriScore = (productJson["nutriscore_grade"] ?? "").toString().trim();
 
-    // Optional: try to infer a "price" from OFF? (OFF doesn't give price)
-    // We'll leave price null so your UI can still show info without breaking.
+    final nutriments =
+        (productJson["nutriments"] is Map<String, dynamic>)
+            ? productJson["nutriments"] as Map<String, dynamic>
+            : <String, dynamic>{};
+
+    final energyKcal100g = _readNum(nutriments, ["energy-kcal_100g", "energy-kcal"]);
+    final fat100g = _readNum(nutriments, ["fat_100g", "fat"]);
+    final sugars100g = _readNum(nutriments, ["sugars_100g", "sugars"]);
+    final salt100g = _readNum(nutriments, ["salt_100g", "salt"]);
+    final proteins100g = _readNum(nutriments, ["proteins_100g", "proteins"]);
+
     return Product(
-      productId: 0, // OFF has no internal productId, so keep 0
+      productId: 0,
       barcode: barcode,
       productName: name,
       brand: brand.isEmpty ? null : brand,
@@ -123,9 +147,13 @@ Future<Product?> _fetchFromOpenFoodFacts(String barcode) async {
       price: null,
       currency: null,
       nutriScore: nutriScore.isEmpty ? null : nutriScore.toUpperCase(),
+      energyKcal100g: energyKcal100g,
+      fat100g: fat100g,
+      sugars100g: sugars100g,
+      salt100g: salt100g,
+      proteins100g: proteins100g,
     );
   } catch (_) {
     return null;
   }
 }
-

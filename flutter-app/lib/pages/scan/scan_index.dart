@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:ruoyi_app/api/product.dart';
 import 'package:ruoyi_app/models/product_model.dart';
 import 'package:ruoyi_app/services/open_food_facts_service.dart';
@@ -20,20 +20,18 @@ class _ScanIndexState extends State<ScanIndex>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late final TabController _tabController;
 
-  // Barcode
   final MobileScannerController _scannerController = MobileScannerController();
   final OpenFoodFactsService _off = OpenFoodFactsService();
+  final ImagePicker _picker = ImagePicker();
+  final TextRecognizer _textRecognizer = TextRecognizer();
+
   bool _barcodeDone = false;
   String _barcodeValue = '';
   bool _lookupLoading = false;
 
-  // Simple debounce / duplicate guard
   String _lastBarcode = '';
   DateTime _lastScanAt = DateTime.fromMillisecondsSinceEpoch(0);
 
-  // OCR
-  final ImagePicker _picker = ImagePicker();
-  final TextRecognizer _textRecognizer = TextRecognizer();
   File? _pickedImage;
   String _ocrText = '';
   bool _ocrLoading = false;
@@ -59,13 +57,10 @@ class _ScanIndexState extends State<ScanIndex>
     final onBarcodeTab = _tabController.index == 0;
     if (!onBarcodeTab) return;
 
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       _scannerController.stop();
-    } else if (state == AppLifecycleState.resumed) {
-      if (!_barcodeDone) {
-        _scannerController.start();
-      }
+    } else if (state == AppLifecycleState.resumed && !_barcodeDone) {
+      _scannerController.start();
     }
   }
 
@@ -113,12 +108,10 @@ class _ScanIndexState extends State<ScanIndex>
     );
   }
 
-  
   String? _extractBarcodeFromText(String text) {
     final matches = RegExp(r'\b\d{8,14}\b').allMatches(text);
     if (matches.isEmpty) return null;
 
-    // Prefer EAN-13 if present, otherwise use first numeric token.
     for (final m in matches) {
       final v = m.group(0);
       if (v != null && v.length == 13) return v;
@@ -145,6 +138,84 @@ class _ScanIndexState extends State<ScanIndex>
 
     await _useBarcode();
   }
+
+  String _fmt(num? value, String unit) {
+    if (value == null) return '-';
+    return '${value.toStringAsFixed(value % 1 == 0 ? 0 : 1)} $unit';
+  }
+
+  Future<void> _addCurrentProductToCart(Product product) async {
+    try {
+      final resp = product.productId > 0
+          ? await addProductToCart(product.productId, quantity: 1)
+          : await addProductToCartByBarcode(product.barcode, quantity: 1);
+
+      final data = resp.data;
+      final ok = resp.statusCode == 200 && data is Map<String, dynamic> && data['code'] == 200;
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(ok ? 'Added to cart' : (data?['msg']?.toString() ?? 'Add to cart failed'))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Add to cart failed: $e')),
+      );
+    }
+  }
+
+  Future<void> _showProductDialog(Product product) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Product Found'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Name: ${product.productName}'),
+                const SizedBox(height: 8),
+                Text('Barcode: ${product.barcode}'),
+                if ((product.brand ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Brand: ${product.brand}'),
+                ],
+                if ((product.nutriScore ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text('Nutri-Score: ${product.nutriScore}'),
+                ],
+                const SizedBox(height: 12),
+                const Text('Nutrition (per 100g)', style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Text('Energy: ${_fmt(product.energyKcal100g, 'kcal')}'),
+                Text('Fat: ${_fmt(product.fat100g, 'g')}'),
+                Text('Sugars: ${_fmt(product.sugars100g, 'g')}'),
+                Text('Salt: ${_fmt(product.salt100g, 'g')}'),
+                Text('Protein: ${_fmt(product.proteins100g, 'g')}'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _addCurrentProductToCart(product);
+              },
+              child: const Text('Add to Cart'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _useBarcode() async {
     final barcode = _barcodeValue.trim();
     if (barcode.isEmpty || _lookupLoading) return;
@@ -162,11 +233,10 @@ class _ScanIndexState extends State<ScanIndex>
         apiResponse = ApiResponse.fromJson(response.data as Map<String, dynamic>);
       }
 
-      final backendOk =
-          apiResponse != null && apiResponse.code == 200 && apiResponse.data != null;
+      final backendOk = apiResponse != null && apiResponse.code == 200 && apiResponse.data != null;
 
       if (backendOk) {
-        product = apiResponse!.data;
+        product = apiResponse.data;
       } else {
         final offProduct = await _off.fetchByBarcode(barcode);
         if (offProduct != null) {
@@ -191,39 +261,7 @@ class _ScanIndexState extends State<ScanIndex>
       return;
     }
 
-    final foundProduct = product;
-
-    await showDialog<void>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Product Found'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Name: ${foundProduct.productName}'),
-              const SizedBox(height: 8),
-              Text('Barcode: ${foundProduct.barcode}'),
-              if ((foundProduct.brand ?? '').isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('Brand: ${foundProduct.brand}'),
-              ],
-              if ((foundProduct.nutriScore ?? '').isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('Nutri-Score: ${foundProduct.nutriScore}'),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
+    await _showProductDialog(product);
   }
 
   Future<void> _pickAndReadText(ImageSource source) async {
@@ -250,11 +288,9 @@ class _ScanIndexState extends State<ScanIndex>
       final inputImage = InputImage.fromFile(file);
       final result = await _textRecognizer.processImage(inputImage);
 
-      final extracted = result.text.trim();
-
       if (!mounted) return;
       setState(() {
-        _ocrText = extracted.isEmpty ? '(No text found)' : extracted;
+        _ocrText = result.text.trim().isEmpty ? '(No text found)' : result.text.trim();
         _ocrLoading = false;
       });
     } catch (e) {
@@ -293,15 +329,10 @@ class _ScanIndexState extends State<ScanIndex>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Result',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                const Text('Result', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
                 Text(
-                  _barcodeDone
-                      ? _barcodeValue
-                      : 'Position barcode inside the frame',
+                  _barcodeDone ? _barcodeValue : 'Position barcode inside the frame',
                   style: const TextStyle(color: Colors.black87),
                 ),
                 const SizedBox(height: 8),
@@ -309,9 +340,7 @@ class _ScanIndexState extends State<ScanIndex>
                   children: [
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: _barcodeValue.isEmpty
-                            ? null
-                            : () => _copyToClipboard(_barcodeValue),
+                        onPressed: _barcodeValue.isEmpty ? null : () => _copyToClipboard(_barcodeValue),
                         icon: const Icon(Icons.copy),
                         label: const Text('Copy'),
                       ),
@@ -319,9 +348,7 @@ class _ScanIndexState extends State<ScanIndex>
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _barcodeValue.isEmpty || _lookupLoading
-                            ? null
-                            : _useBarcode,
+                        onPressed: _barcodeValue.isEmpty || _lookupLoading ? null : _useBarcode,
                         icon: _lookupLoading
                             ? const SizedBox(
                                 width: 16,
@@ -394,9 +421,7 @@ class _ScanIndexState extends State<ScanIndex>
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: _ocrLoading
-                      ? null
-                      : () => _pickAndReadText(ImageSource.gallery),
+                  onPressed: _ocrLoading ? null : () => _pickAndReadText(ImageSource.gallery),
                   icon: const Icon(Icons.photo),
                   label: const Text('Gallery'),
                 ),
@@ -404,9 +429,7 @@ class _ScanIndexState extends State<ScanIndex>
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: _ocrLoading
-                      ? null
-                      : () => _pickAndReadText(ImageSource.camera),
+                  onPressed: _ocrLoading ? null : () => _pickAndReadText(ImageSource.camera),
                   icon: const Icon(Icons.camera_alt),
                   label: const Text('Camera'),
                 ),
@@ -431,16 +454,11 @@ class _ScanIndexState extends State<ScanIndex>
                         Row(
                           children: [
                             const Expanded(
-                              child: Text(
-                                'Recognized Text',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
+                              child: Text('Recognized Text', style: TextStyle(fontWeight: FontWeight.bold)),
                             ),
                             IconButton(
                               tooltip: 'Copy',
-                              onPressed: _ocrText.trim().isEmpty
-                                  ? null
-                                  : () => _copyToClipboard(_ocrText),
+                              onPressed: _ocrText.trim().isEmpty ? null : () => _copyToClipboard(_ocrText),
                               icon: const Icon(Icons.copy),
                             ),
                           ],
@@ -449,9 +467,7 @@ class _ScanIndexState extends State<ScanIndex>
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton.icon(
-                            onPressed: (_ocrLoading || _lookupLoading)
-                                ? null
-                                : _useBarcodeFromText,
+                            onPressed: (_ocrLoading || _lookupLoading) ? null : _useBarcodeFromText,
                             icon: _lookupLoading
                                 ? const SizedBox(
                                     width: 16,
@@ -466,9 +482,7 @@ class _ScanIndexState extends State<ScanIndex>
                         Expanded(
                           child: SingleChildScrollView(
                             child: Text(
-                              _ocrText.isEmpty
-                                  ? 'No text extracted yet.'
-                                  : _ocrText,
+                              _ocrText.isEmpty ? 'No text extracted yet.' : _ocrText,
                               style: const TextStyle(fontSize: 14),
                             ),
                           ),
