@@ -74,7 +74,7 @@ spring:
     # Address
     host: localhost
     # Port, default is 6379
-    port: 6379
+    port: 16379
     # Database Index
     database: 0
     # Password
@@ -139,13 +139,9 @@ xss:
   # Matching Links
   urlPatterns: /system/*,/monitor/*,/tool/*
 
-# Google OAuth2 (for team6 Google login). Do not commit real credentials! Configure in application-druid.yml or env vars.
-# If pushed to GitHub by mistake: reset Client Secret in Google Cloud Console, then set the new value here or in application-druid.yml.
+# Google OAuth2 (for team6 Google login). Do not commit real credentials!
+# Set in application-druid.yml (gitignored) or env vars (GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET).
+# If pushed by mistake: reset Client Secret in Google Cloud Console.
 google:
-  # Set in application-druid.yml or env (e.g. GOOGLE_CLIENT_ID). Do not commit real values.
   clientId: ${GOOGLE_CLIENT_ID:}
   clientSecret: ${GOOGLE_CLIENT_SECRET:}
-  # Single redirect URI for both iOS and Android. Add exactly this in Google Console → Authorized redirect URIs (Web client).
-  redirectUri: http://localhost:8080/oauth2/google/callback
-  # Android: same as redirectUri. On emulator you must run once: adb reverse tcp:8080 tcp:8080 (so emulator browser's localhost:8080 reaches your PC).
-  redirectUriAndroid: http://localhost:8080/oauth2/google/callback

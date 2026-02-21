@@ -19,6 +19,12 @@ public interface IGoogleLoginService {
     String getAccessToken(String code);
 
     /**
+     * Exchange authorization code for access token with explicit redirect URI.
+     * Use when redirect URI is built dynamically from request (e.g. for AWS deployment).
+     */
+    String getAccessToken(String code, String redirectUri);
+
+    /**
      * Get Google user info by access token.
      *
      * @param accessToken Google access token

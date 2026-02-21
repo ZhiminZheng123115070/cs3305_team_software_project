@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -18,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 /**
+ * Google OAuth2 login. Auth URL and token exchange use redirect URI built from request host
+ * so it works for localhost, AWS IP, or any deployed URL without config change.
  *
  * @author zhimin
  */
@@ -29,17 +32,32 @@ public class Team6GoogleLoginSystem {
     @Value("${google.clientId}")
     private String clientId;
 
-    @Value("${google.redirectUri}")
-    private String redirectUri;
+    /**
+     * Build redirect URI from request host so it works for localhost, AWS, or any deployed URL.
+     */
+    private String buildRedirectUri(HttpServletRequest request) {
+        String scheme = request.getHeader("X-Forwarded-Proto");
+        if (scheme == null || scheme.isEmpty()) scheme = request.getScheme();
+        String host = request.getHeader("X-Forwarded-Host");
+        if (host == null || host.isEmpty()) host = request.getHeader("Host");
+        if (host == null || host.isEmpty()) host = request.getServerName() + ":" + request.getServerPort();
+        String contextPath = request.getContextPath();
+        if (contextPath == null) contextPath = "";
+        return scheme + "://" + host + contextPath + "/oauth2/google/callback";
+    }
 
     /**
      * Google login callback: exchange code for token (JSON response).
      */
     @GetMapping("/user/login/google/callback")
-    public AjaxResult callback(@RequestParam("code") String code) {
+    public AjaxResult callback(@RequestParam("code") String code, HttpServletRequest request) {
         try {
+            String redirectUri = buildRedirectUri(request);
+            java.util.Map<String, String> params = new java.util.HashMap<>();
+            params.put("code", code);
+            params.put("redirectUri", redirectUri);
             AbstractLoginHandler handler = LoginStrategyFactory.getStrategy("google-login");
-            String token = handler.login(Collections.singletonMap("code", code));
+            String token = handler.login(params);
             AjaxResult ajax = AjaxResult.success();
             ajax.put(Constants.TOKEN, token);
             return ajax;
@@ -50,11 +68,12 @@ public class Team6GoogleLoginSystem {
     }
 
     /**
-     * Get Google auth URL
+     * Get Google auth URL. Redirect URI is built from request host (works for localhost, AWS, any URL).
      */
     @GetMapping("/user/login/google/auth-url")
-    public AjaxResult getAuthUrl() {
+    public AjaxResult getAuthUrl(HttpServletRequest request) {
         try {
+            String redirectUri = buildRedirectUri(request);
             String state = "google_login_" + System.currentTimeMillis();
             String scope = "openid email profile";
             // prompt=select_account: show account picker each time so user can switch account

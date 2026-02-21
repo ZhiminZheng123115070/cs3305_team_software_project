@@ -28,7 +28,7 @@
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLName</key>
-			<string>com.example.ruoyiApp</string>
+			<string>com.team6.ruoyiApp</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>ruoyiapp</string>

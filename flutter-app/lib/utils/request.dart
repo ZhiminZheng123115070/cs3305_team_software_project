@@ -1,21 +1,12 @@
 import "package:dio/dio.dart";
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ruoyi_app/utils/sputils.dart';
 
 /// Dio network request configuration table (custom)
 class DioConfig {
-  /// Backend base URL by platform:
-  /// - Web: localhost:8080
-  /// - iOS simulator: 127.0.0.1:8080 (use Mac IP on real device if needed)
-  /// - Android emulator: 10.0.2.2:8080
-  static String get baseURL {
-    if (kIsWeb) return "http://localhost:8080";
-    if (defaultTargetPlatform == TargetPlatform.iOS) return "http://127.0.0.1:8080";
-    if (defaultTargetPlatform == TargetPlatform.android) return "http://10.0.2.2:8080";
-    return "http://localhost:8080";
-  }
+  /// Backend base URL (dietpal.duckdns.org with HTTPS)
+  static const String baseURL = "https://dietpal.duckdns.org";
   static const timeout = 10000;
 }
 
