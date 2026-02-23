@@ -3,6 +3,7 @@ package com.team6.controller.productController;
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.pojo.Product;
+import com.team6.request.AddProductRequest;
 import com.team6.request.ProductSearchRequest;
 import com.team6.response.ProductSearchResponse;
 import com.team6.service.productService.IProductService;
@@ -47,5 +48,17 @@ public class productSearchController {
         }
     }
 
+    /**
+     * @param request AddProductRequest
+     */
+    @PostMapping("")
+    public AjaxResult addProduct(@RequestBody AddProductRequest request) {
+        Product product = new Product();
+        BeanUtils.copyProperties(request, product);
+        Product saved = productService.addProduct(product);
+        ProductSearchResponse response = new ProductSearchResponse();
+        BeanUtils.copyProperties(saved, response);
+        return AjaxResult.success(response);
+    }
 
 }
