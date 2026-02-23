@@ -28,6 +28,11 @@ public interface IProductService {
      */
     public Product getProductByBarcode(String barcode);
 
+    /**
+     * Scanner flow lookup with OFF fallback and cache insert.
+     */
+    public Product getProductByBarcodeForScanning(String barcode);
+
 
     public int addCart(Long productId, Integer quantity);
 

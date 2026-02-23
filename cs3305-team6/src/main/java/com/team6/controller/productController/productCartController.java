@@ -2,6 +2,7 @@ package com.team6.controller.productController;
 
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.team6.pojo.Product;
 import com.team6.request.CartListRequest;
 import com.team6.response.CartItemResponse;
 import com.team6.service.productService.IProductService;
@@ -29,6 +30,23 @@ public class productCartController {
             return AjaxResult.success("Add product in Cart successfully");
         }
         return AjaxResult.error("Update product in Cart failure");
+    }
+
+    /**
+     * Resolve/cache by barcode via scanning flow, then add to cart.
+     */
+    @PostMapping("/barcode")
+    public AjaxResult addCartByBarcode(@RequestParam("barcode") String barcode,
+                                       @RequestParam(defaultValue = "1") Integer quantity){
+        Product p = productService.getProductByBarcodeForScanning(barcode);
+        if (p == null || p.getProductId() == null || p.getProductId() <= 0) {
+            return AjaxResult.error("Product not cached in DB yet");
+        }
+
+        if(productService.addCart(p.getProductId(), quantity) > 0){
+            return AjaxResult.success("Add product in Cart successfully", p);
+        }
+        return AjaxResult.error("Add product in Cart failure");
     }
 
     @PutMapping()

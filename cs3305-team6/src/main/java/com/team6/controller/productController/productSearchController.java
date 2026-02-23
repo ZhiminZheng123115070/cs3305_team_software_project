@@ -47,5 +47,22 @@ public class productSearchController {
         }
     }
 
+    /**
+     * Scanner flow endpoint:
+     * local DB lookup -> OFF fallback -> cache insert -> return product.
+     */
+    @GetMapping("/search/barcode/scanning")
+    public AjaxResult getProductByBarcodeForScanning(@RequestParam String barcode){
+        Product product = productService.getProductByBarcodeForScanning(barcode);
+
+        if (product != null) {
+            ProductSearchResponse response = new ProductSearchResponse();
+            BeanUtils.copyProperties(product, response);
+            return AjaxResult.success(response);
+        } else {
+            return AjaxResult.error("Product not found for the given barcode");
+        }
+    }
+
 
 }

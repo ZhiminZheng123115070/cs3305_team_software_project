@@ -10,22 +10,36 @@ class WebViewIndex extends StatefulWidget {
 }
 
 class _WebViewIndexState extends State<WebViewIndex> {
+  late final WebViewController _controller;
+  late final String _title;
+
+  @override
+  void initState() {
+    super.initState();
+    final arg = (Get.arguments as Map?) ?? const {};
+    final url = (arg['url'] ?? '').toString();
+    _title = (arg['title'] ?? 'Web').toString();
+
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted);
+
+    if (url.isNotEmpty) {
+      _controller.loadRequest(Uri.parse(url));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    var arg = Get.arguments;
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          arg["title"],
+          _title,
           style: const TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.transparent, // Set background color to transparent
         shadowColor: Colors.transparent,
       ),
-      body: WebView(
-        javascriptMode: JavascriptMode.unrestricted,
-        initialUrl: arg["url"],
-      ),
+      body: WebViewWidget(controller: _controller),
     );
   }
 }

@@ -218,9 +218,10 @@ INSERT INTO sys_user_role VALUES (2, 2);
 INSERT INTO sys_user_role VALUES (3, 3);
 
 -- Initial Data
-insert into sys_user_role values ('1', '1');
-insert into sys_user_role values ('2', '2');
-insert into sys_user_role values ('3', '3');
+-- duplicate seed rows removed (already inserted above)
+-- insert into sys_user_role values ('1', '1');
+-- insert into sys_user_role values ('2', '2');
+-- insert into sys_user_role values ('3', '3');
 
 
 -- ----------------------------

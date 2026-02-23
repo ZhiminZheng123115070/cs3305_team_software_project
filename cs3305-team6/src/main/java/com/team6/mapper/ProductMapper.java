@@ -17,4 +17,9 @@ public interface ProductMapper {
      * @return Product information
      */
     Product getProductBarcode(String barcode);
+
+    /**
+     * Insert product cache record (e.g. OFF fallback result).
+     */
+    int insertProduct(Product product);
 }

@@ -5,8 +5,13 @@ import 'package:ruoyi_app/utils/sputils.dart';
 
 /// Dio network request configuration table (custom)
 class DioConfig {
-  /// Backend base URL (dietpal.duckdns.org with HTTPS)
-  static const String baseURL = "https://dietpal.duckdns.org";
+  /// Default public backend URL.
+  /// Override for local testing with:
+  /// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8081
+  static const String baseURL = String.fromEnvironment(
+    "API_BASE_URL",
+    defaultValue: "https://dietpal.duckdns.org",
+  );
   static const timeout = 10000;
 }
 

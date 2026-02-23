@@ -1,7 +1,10 @@
 package com.team6.service.productService.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.ruoyi.common.utils.SecurityUtils;
+import com.ruoyi.common.utils.StringUtils;
 import com.team6.mapper.CartMapper;
 import com.team6.mapper.OrderMapper;
 import com.team6.mapper.ProductMapper;
@@ -20,9 +23,18 @@ import org.apache.catalina.security.SecurityUtil;
 import org.apache.ibatis.annotations.Param;
 import org.checkerframework.checker.units.qual.C;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.net.Proxy;
+import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +48,9 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService implements IProductService {
 
+    @Value("${app.open-food-facts.base-url:https://world.openfoodfacts.org}")
+    private String openFoodFactsBaseUrl;
+
     @Autowired
     private ProductMapper productMapper;
 
@@ -47,6 +62,9 @@ public class ProductService implements IProductService {
 
     @Autowired
     private StorageMapper storageMapper;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     private static final Map<String, String> SORT_FIELD_WHITELIST=new LinkedHashMap<>();
     static {
@@ -89,6 +107,102 @@ public class ProductService implements IProductService {
     @Override
     public Product getProductByBarcode(String barcode){
         return productMapper.getProductBarcode(barcode);
+    }
+
+    @Override
+    public Product getProductByBarcodeForScanning(String barcode) {
+        Product local = safeGetLocal(barcode);
+        if (local != null) {
+            return local;
+        }
+
+        Product offProduct = fetchFromOpenFoodFacts(barcode);
+        if (offProduct == null) {
+            return null;
+        }
+
+        try {
+            productMapper.insertProduct(offProduct);
+            Product inserted = safeGetLocal(barcode);
+            return inserted != null ? inserted : offProduct;
+        } catch (Exception e) {
+            Product existing = safeGetLocal(barcode);
+            return existing != null ? existing : offProduct;
+        }
+    }
+
+    private Product safeGetLocal(String barcode) {
+        try {
+            return productMapper.getProductBarcode(barcode);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private Product fetchFromOpenFoodFacts(String barcode) {
+        try {
+            String encodedBarcode = URLEncoder.encode(barcode, StandardCharsets.UTF_8.name());
+            String url = openFoodFactsBaseUrl + "/api/v0/product/" + encodedBarcode + ".json";
+            String body = fetchOffJsonWithoutProxy(url);
+
+            if (StringUtils.isBlank(body)) {
+                return null;
+            }
+
+            JsonNode root = objectMapper.readTree(body);
+            if (root.path("status").asInt(0) != 1) {
+                return null;
+            }
+
+            JsonNode productNode = root.path("product");
+            if (productNode.isMissingNode() || productNode.isNull()) {
+                return null;
+            }
+
+            Product p = new Product();
+            p.setBarcode(barcode);
+            p.setName(firstNonBlank(productNode.path("product_name").asText(null), "Unknown Product"));
+            p.setBrand(productNode.path("brands").asText(null));
+            p.setImageUrl(productNode.path("image_front_url").asText(productNode.path("image_url").asText(null)));
+            p.setCurrency("EUR");
+            String nutriScore = productNode.path("nutriscore_grade").asText(null);
+            p.setNutriScore(StringUtils.isNotBlank(nutriScore) ? nutriScore.toUpperCase() : null);
+            p.setSource("OFF");
+            p.setSourceUrl(productNode.path("url").asText(null));
+            p.setProductStatus("FOUND");
+            p.setLastFetchedAt(new Date());
+            return p;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String fetchOffJsonWithoutProxy(String url) {
+        StringBuilder result = new StringBuilder();
+        try {
+            URL realUrl = new URL(url);
+            URLConnection connection = realUrl.openConnection(Proxy.NO_PROXY);
+            connection.setRequestProperty("accept", "application/json");
+            connection.setRequestProperty("connection", "Keep-Alive");
+            connection.setRequestProperty("user-agent", "Mozilla/5.0");
+            connection.setConnectTimeout(8000);
+            connection.setReadTimeout(8000);
+
+            try (BufferedReader in = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = in.readLine()) != null) {
+                    result.append(line);
+                }
+            }
+        } catch (Exception e) {
+            return "";
+        }
+        return result.toString();
+    }
+
+    private String firstNonBlank(String value, String fallback) {
+        return StringUtils.isNotBlank(value) ? value : fallback;
     }
 
     @Override
