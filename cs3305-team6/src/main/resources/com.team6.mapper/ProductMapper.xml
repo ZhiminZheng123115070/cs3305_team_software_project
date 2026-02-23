@@ -28,6 +28,16 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
+    <insert id="addProduct" useGeneratedKeys="true" keyProperty="productId">
+        insert into app_products(product_id, barcode, name, brand, image_url, price, currency,
+                                 energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
+                                 nutri_score, source, source_url, product_status, last_fetched_at,
+                                 created_at, updated_at)
+        values (#{productId},#{barcode},#{name},#{brand},#{imageUrl},#{price},#{currency},
+                #{energyKcal},#{fat},#{saturatedFat},#{carbohydrates},#{sugars},#{fiber},
+                #{proteins},#{salt},#{nutriScore},#{source},#{sourceUrl},#{productStatus},#{lastFetchedAt},
+                #{createdAt},#{updatedAt})
+    </insert>
 
     <!-- Product search: query app_products table only -->
     <select id="getProductBarcode" resultMap="productResultMap">

@@ -28,6 +28,8 @@ public interface IProductService {
      */
     public Product getProductByBarcode(String barcode);
 
+    public Product addProduct(Product product);
+
 
     public int addCart(Long productId, Integer quantity);
 
