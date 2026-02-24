@@ -96,7 +96,10 @@ class DioRequest {
       print("data = ${response.data}");
       handler.next(response);
     }, onError: (DioError e, handler) {
-      Get.snackbar("Network Error", "Request Failed");
+      final suppressToast = e.requestOptions.extra["suppressErrorToast"] == true;
+      if (!suppressToast) {
+        Get.snackbar("Network Error", "Request Failed");
+      }
       print("================== Error Response Data ======================");
       print("type = ${e.type}");
       print("message = ${e.message}");
@@ -116,6 +119,7 @@ class DioRequest {
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
     Options? extraOptions,
+    bool suppressErrorToast = false,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
@@ -137,11 +141,19 @@ class DioRequest {
           "Authorization": "Bearer ${GetStorage().read("token")}",
         },
         method: method,
+        extra: {
+          ...?extraOptions?.extra,
+          "suppressErrorToast": suppressErrorToast,
+        },
       );
     } else {
       opts = Options(
         headers: {"content-type": extraOptions?.contentType ?? "application/json; charset=utf-8"},
         method: method,
+        extra: {
+          ...?extraOptions?.extra,
+          "suppressErrorToast": suppressErrorToast,
+        },
       );
     }
     switch (method) {

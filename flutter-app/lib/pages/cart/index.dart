@@ -413,6 +413,13 @@ class _CartIndexState extends State<CartIndex> {
                                           _showProductAddedToast();
                                           return true;
                                         }
+                                        if (mounted) {
+                                          final msg = d?['msg']?.toString() ??
+                                              'Failed to add scanned product to cart';
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text(msg)),
+                                          );
+                                        }
                                         return false;
                                       })();
                                 if (mounted && ok) Navigator.pop(ctx);

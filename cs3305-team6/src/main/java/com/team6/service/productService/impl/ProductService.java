@@ -106,7 +106,7 @@ public class ProductService implements IProductService {
      */
     @Override
     public Product getProductByBarcode(String barcode){
-        return productMapper.getProductBarcode(barcode);
+        return getProductByBarcodeForScanning(barcode);
     }
 
     @Override
