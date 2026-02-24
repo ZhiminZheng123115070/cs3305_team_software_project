@@ -47,6 +47,36 @@
                created_at, updated_at
         from app_products
         where barcode = #{barcode}
+        limit 1
     </select>
+
+    <insert id="insertProduct" parameterType="com.team6.pojo.Product" useGeneratedKeys="true" keyProperty="productId">
+        insert into app_products
+        (
+            barcode,
+            name,
+            brand,
+            image_url,
+            currency,
+            nutri_score,
+            source,
+            source_url,
+            product_status,
+            last_fetched_at
+        )
+        values
+        (
+            #{barcode},
+            #{name},
+            #{brand},
+            #{imageUrl},
+            #{currency},
+            #{nutriScore},
+            #{source},
+            #{sourceUrl},
+            #{productStatus},
+            #{lastFetchedAt}
+        )
+    </insert>
 
 </mapper>

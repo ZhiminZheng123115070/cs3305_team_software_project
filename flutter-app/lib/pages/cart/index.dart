@@ -6,6 +6,7 @@ import 'package:ruoyi_app/models/cart_item_model.dart';
 import 'package:ruoyi_app/models/order_item_model.dart';
 import 'package:ruoyi_app/models/product_model.dart';
 import 'package:ruoyi_app/routes/app_routes.dart';
+import 'package:ruoyi_app/widgets/barcode_scanner_sheet.dart';
 
 class CartIndex extends StatefulWidget {
   const CartIndex({Key? key}) : super(key: key);
@@ -142,6 +143,66 @@ class _CartIndexState extends State<CartIndex> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) {
+          Future<void> runProductLookup({required bool useScanningApi, String? presetBarcode}) async {
+            final barcode = (presetBarcode ?? barcodeController.text).trim();
+            if (barcode.isEmpty) {
+              setModalState(() {
+                errorMsg = 'Please enter a product code';
+                foundProduct = null;
+              });
+              return;
+            }
+
+            if (barcodeController.text.trim() != barcode) {
+              barcodeController.text = barcode;
+            }
+
+            setModalState(() {
+              searching = true;
+              errorMsg = '';
+              foundProduct = null;
+            });
+
+            try {
+              final resp = useScanningApi
+                  ? await searchProductByBarcodeForScanning(barcode)
+                  : await searchProductByBarcode(barcode);
+
+              if (resp.statusCode == 200 && resp.data != null) {
+                final d = resp.data as Map<String, dynamic>?;
+                if (d != null && (d['code'] == 200 || d['code'] == '200')) {
+                  final pd = d['data'];
+                  if (pd != null) {
+                    setModalState(() {
+                      foundProduct = Product.fromJson(pd as Map<String, dynamic>);
+                      errorMsg = '';
+                    });
+                  } else {
+                    setModalState(() {
+                      errorMsg = d['msg']?.toString() ?? 'Product not found';
+                    });
+                  }
+                } else {
+                  setModalState(() {
+                    errorMsg = d?['msg']?.toString() ?? 'Product not found';
+                  });
+                }
+              } else {
+                setModalState(() {
+                  errorMsg = 'Product not found';
+                });
+              }
+            } catch (_) {
+              setModalState(() {
+                errorMsg = 'Search failed';
+              });
+            } finally {
+              if (mounted) {
+                setModalState(() => searching = false);
+              }
+            }
+          }
+
           return Container(
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(ctx).viewInsets.bottom,
@@ -209,60 +270,7 @@ class _CartIndexState extends State<CartIndex> {
                         child: ElevatedButton.icon(
                           onPressed: searching
                               ? null
-                              : () async {
-                                  final barcode = barcodeController.text.trim();
-                                  if (barcode.isEmpty) {
-                                    setModalState(() {
-                                      errorMsg = 'Please enter a product code';
-                                      foundProduct = null;
-                                    });
-                                    return;
-                                  }
-                                  setModalState(() {
-                                    searching = true;
-                                    errorMsg = '';
-                                    foundProduct = null;
-                                  });
-                                  try {
-                                    final resp =
-                                        await searchProductByBarcode(barcode);
-                                    if (resp.statusCode == 200 &&
-                                        resp.data != null) {
-                                      final d = resp.data as Map<String, dynamic>?;
-                                      if (d != null &&
-                                          (d['code'] == 200 || d['code'] == '200')) {
-                                        final pd = d['data'];
-                                        if (pd != null) {
-                                          setModalState(() {
-                                            foundProduct =
-                                                Product.fromJson(pd as Map<String, dynamic>);
-                                            errorMsg = '';
-                                          });
-                                        } else {
-                                          setModalState(() {
-                                            errorMsg = d['msg']?.toString() ??
-                                                'Product not found';
-                                          });
-                                        }
-                                      } else {
-                                        setModalState(() {
-                                          errorMsg = d?['msg']?.toString() ??
-                                              'Product not found';
-                                        });
-                                      }
-                                    } else {
-                                      setModalState(() {
-                                        errorMsg = 'Product not found';
-                                      });
-                                    }
-                                  } catch (_) {
-                                    setModalState(() {
-                                      errorMsg = 'Search failed';
-                                    });
-                                  } finally {
-                                    setModalState(() => searching = false);
-                                  }
-                                },
+                              : () => runProductLookup(useScanningApi: false),
                           icon: searching
                               ? const SizedBox(
                                   width: 18,
@@ -287,13 +295,23 @@ class _CartIndexState extends State<CartIndex> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Scan feature coming soon'),
-                              ),
-                            );
-                          },
+                          onPressed: searching
+                              ? null
+                              : () async {
+                                  await showModalBottomSheet(
+                                    context: ctx,
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.white,
+                                    builder: (_) => BarcodeScannerSheet(
+                                      onScanned: (code) {
+                                        runProductLookup(
+                                          useScanningApi: true,
+                                          presetBarcode: code,
+                                        );
+                                      },
+                                    ),
+                                  );
+                                },
                           icon: const Icon(Icons.document_scanner, size: 20),
                           label: const Text('Scan'),
                           style: OutlinedButton.styleFrom(
@@ -379,7 +397,24 @@ class _CartIndexState extends State<CartIndex> {
                           IconButton(
                             onPressed: () async {
                               try {
-                                final ok = await _addToCartOrIncrement(foundProduct!.productId);
+                                final ok = foundProduct!.productId > 0
+                                    ? await _addToCartOrIncrement(foundProduct!.productId)
+                                    : await (() async {
+                                        final resp = await addProductToCartByBarcode(
+                                          foundProduct!.barcode,
+                                          quantity: 1,
+                                        );
+                                        final d = resp.data as Map?;
+                                        final success = resp.statusCode == 200 &&
+                                            d != null &&
+                                            (d['code'] == 200 || d['code'] == '200');
+                                        if (success) {
+                                          await _loadCart();
+                                          _showProductAddedToast();
+                                          return true;
+                                        }
+                                        return false;
+                                      })();
                                 if (mounted && ok) Navigator.pop(ctx);
                               } catch (e) {
                                 if (mounted) {

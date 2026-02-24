@@ -6,31 +6,58 @@ import 'package:webview_flutter/webview_flutter.dart';
 /// WebView page for Google OAuth login.
 /// Loads auth URL; when Google redirects to redirect_uri (e.g. .../google-login?code=xxx),
 /// intercepts the URL, extracts the code, and returns it to the login page via Get.back(result: code).
-class GoogleLoginWebView extends StatelessWidget {
+class GoogleLoginWebView extends StatefulWidget {
   const GoogleLoginWebView({Key? key}) : super(key: key);
 
-  /// Intercept navigation: if URL is the OAuth callback (contains "google-login" and "code="),
-  /// parse the code and close this page with the code so the login page can exchange it for a token.
-  static NavigationDecision _onNavigationRequest(NavigationRequest request) {
-    final uri = Uri.tryParse(request.url);
-    if (uri != null &&
-        (uri.path.contains('google-login') || request.url.contains('google-login')) &&
-        uri.queryParameters.containsKey('code')) {
-      final code = uri.queryParameters['code']?.trim();
-      if (code != null && code.isNotEmpty) {
-        Get.back(result: code);
+  @override
+  State<GoogleLoginWebView> createState() => _GoogleLoginWebViewState();
+}
+
+class _GoogleLoginWebViewState extends State<GoogleLoginWebView> {
+  late final String _url;
+  WebViewController? _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final args = Get.arguments;
+    _url = (args is Map) ? ((args['authUrl'] ?? args['url'])?.toString() ?? '') : '';
+
+    if (_url.isNotEmpty) {
+      final controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..setNavigationDelegate(
+          NavigationDelegate(
+            onNavigationRequest: (NavigationRequest request) {
+              final uri = Uri.tryParse(request.url);
+              if (uri != null &&
+                  (uri.path.contains('google-login') || request.url.contains('google-login')) &&
+                  uri.queryParameters.containsKey('code')) {
+                final code = uri.queryParameters['code']?.trim();
+                if (code != null && code.isNotEmpty) {
+                  Get.back(result: code);
+                }
+                return NavigationDecision.prevent;
+              }
+              return NavigationDecision.navigate;
+            },
+          ),
+        )
+        ..loadRequest(Uri.parse(_url));
+
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        controller.setUserAgent(
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+          '(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        );
       }
-      return NavigationDecision.prevent;
+
+      _controller = controller;
     }
-    return NavigationDecision.navigate;
   }
 
   @override
   Widget build(BuildContext context) {
-    final args = Get.arguments;
-    final url = (args is Map)
-        ? ((args['authUrl'] ?? args['url'])?.toString() ?? '')
-        : '';
     return Scaffold(
       appBar: AppBar(
         title: const Text('Google Login', style: TextStyle(color: Colors.black)),
@@ -40,17 +67,9 @@ class GoogleLoginWebView extends StatelessWidget {
           onPressed: () => Get.back(),
         ),
       ),
-      body: url.isEmpty
+      body: _url.isEmpty || _controller == null
           ? const Center(child: Text('No auth URL'))
-          : WebView(
-              javascriptMode: JavascriptMode.unrestricted,
-              initialUrl: url,
-              // On Android, use desktop Chrome UA so Google OAuth does not block with 403 disallowed_useragent; iOS works with default.
-              userAgent: defaultTargetPlatform == TargetPlatform.android
-                  ? 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                  : null,
-              navigationDelegate: _onNavigationRequest,
-            ),
+          : WebViewWidget(controller: _controller!),
     );
   }
 }

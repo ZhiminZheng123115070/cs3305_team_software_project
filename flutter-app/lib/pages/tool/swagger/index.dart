@@ -9,6 +9,16 @@ class SwaggerIndex extends StatefulWidget {
 }
 
 class _SwaggerIndexState extends State<SwaggerIndex> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadRequest(Uri.parse("https://mouor.cn:8081/swagger-ui/index.html"));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,10 +30,7 @@ class _SwaggerIndexState extends State<SwaggerIndex> {
         backgroundColor: Colors.transparent, // Set background color to transparent
         shadowColor: Colors.transparent,
       ),
-      body: WebView(
-        javascriptMode: JavascriptMode.unrestricted,
-        initialUrl: "https://mouor.cn:8081/swagger-ui/index.html",
-      ),
+      body: WebViewWidget(controller: _controller),
     );
   }
 }

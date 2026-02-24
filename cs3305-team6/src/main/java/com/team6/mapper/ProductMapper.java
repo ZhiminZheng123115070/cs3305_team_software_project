@@ -17,6 +17,4 @@ public interface ProductMapper {
      * @return Product information
      */
     Product getProductBarcode(String barcode);
-
-    int addProduct(Product product);
 }

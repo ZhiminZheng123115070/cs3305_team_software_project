@@ -1,7 +1,6 @@
 package com.team6.service.productService.impl;
 
 import com.github.pagehelper.PageHelper;
-import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.team6.mapper.CartMapper;
 import com.team6.mapper.OrderMapper;
@@ -24,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,29 +89,6 @@ public class ProductService implements IProductService {
     @Override
     public Product getProductByBarcode(String barcode){
         return productMapper.getProductBarcode(barcode);
-    }
-
-    @Override
-    public Product addProduct(Product product) {
-        if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
-            throw new ServiceException("Product barcode cannot be empty");
-        }
-        Product existing = productMapper.getProductBarcode(product.getBarcode().trim());
-        if (existing != null) {
-            throw new ServiceException("Product with barcode already exists: " + product.getBarcode());
-        }
-        Date now = new Date();
-        if (product.getCreatedAt() == null) {
-            product.setCreatedAt(now);
-        }
-        if (product.getUpdatedAt() == null) {
-            product.setUpdatedAt(now);
-        }
-        if (product.getLastFetchedAt() == null) {
-            product.setLastFetchedAt(now);
-        }
-        productMapper.addProduct(product);
-        return productMapper.getProductBarcode(product.getBarcode());
     }
 
     @Override
