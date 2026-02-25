@@ -2,6 +2,9 @@ PODS:
   - app_links (0.0.1):
     - Flutter
   - Flutter (1.0.0)
+  - mobile_scanner (7.0.0):
+    - Flutter
+    - FlutterMacOS
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -12,20 +15,24 @@ PODS:
     - Flutter
   - webview_flutter_wkwebview (0.0.1):
     - Flutter
+    - FlutterMacOS
 
 DEPENDENCIES:
   - app_links (from `.symlinks/plugins/app_links/ios`)
   - Flutter (from `Flutter`)
+  - mobile_scanner (from `.symlinks/plugins/mobile_scanner/darwin`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
-  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/ios`)
+  - webview_flutter_wkwebview (from `.symlinks/plugins/webview_flutter_wkwebview/darwin`)
 
 EXTERNAL SOURCES:
   app_links:
     :path: ".symlinks/plugins/app_links/ios"
   Flutter:
     :path: Flutter
+  mobile_scanner:
+    :path: ".symlinks/plugins/mobile_scanner/darwin"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   shared_preferences_foundation:
@@ -33,15 +40,16 @@ EXTERNAL SOURCES:
   url_launcher_ios:
     :path: ".symlinks/plugins/url_launcher_ios/ios"
   webview_flutter_wkwebview:
-    :path: ".symlinks/plugins/webview_flutter_wkwebview/ios"
+    :path: ".symlinks/plugins/webview_flutter_wkwebview/darwin"
 
 SPEC CHECKSUMS:
   app_links: c5161ac5ab5383ad046884568b4b91cb52df5d91
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  mobile_scanner: 9157936403f5a0644ca3779a38ff8404c5434a93
   path_provider_foundation: 080d55be775b7414fd5a5ef3ac137b97b097e564
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
-  webview_flutter_wkwebview: 6e6160e04b1e85872253adc5322afe416d9cdddc
+  webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
 PODFILE CHECKSUM: cc1f88378b4bfcf93a6ce00d2c587857c6008d3b
 

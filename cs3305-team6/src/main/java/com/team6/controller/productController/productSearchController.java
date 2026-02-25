@@ -3,6 +3,7 @@ package com.team6.controller.productController;
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
 import com.team6.pojo.Product;
+import com.team6.request.AddProductRequest;
 import com.team6.request.ProductSearchRequest;
 import com.team6.response.ProductSearchResponse;
 import com.team6.service.productService.IProductService;
@@ -47,5 +48,18 @@ public class productSearchController {
         }
     }
 
-
+    /**
+     * Ensure product exists: return existing by barcode, or create from body (e.g. OFF data from app).
+     * Used when adding scanned/OFF product to cart so it is cached in DB first.
+     */
+    @PostMapping()
+    public AjaxResult ensureProduct(@RequestBody AddProductRequest request) {
+        if (request == null || request.getBarcode() == null || request.getBarcode().trim().isEmpty()) {
+            return AjaxResult.error("Barcode is required");
+        }
+        Product product = productService.ensureProduct(request);
+        ProductSearchResponse response = new ProductSearchResponse();
+        BeanUtils.copyProperties(product, response);
+        return AjaxResult.success(response);
+    }
 }

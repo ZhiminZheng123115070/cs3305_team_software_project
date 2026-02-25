@@ -40,6 +40,15 @@ class Product {
   final num? price;          // from app_products.price
   final String? currency;
   final String? nutriScore;
+  // Nutrition per 100g (from OFF nutriments or backend)
+  final num? energyKcal;
+  final num? fat;
+  final num? saturatedFat;
+  final num? carbohydrates;
+  final num? sugars;
+  final num? fiber;
+  final num? proteins;
+  final num? salt;
 
   Product({
     required this.productId,
@@ -50,6 +59,14 @@ class Product {
     this.price,
     this.currency,
     this.nutriScore,
+    this.energyKcal,
+    this.fat,
+    this.saturatedFat,
+    this.carbohydrates,
+    this.sugars,
+    this.fiber,
+    this.proteins,
+    this.salt,
   });
 
   // Factory method to create Product from JSON (app_products response)
@@ -65,7 +82,22 @@ class Product {
       price: json['price'] != null ? (json['price'] as num) : null,
       currency: json['currency']?.toString(),
       nutriScore: json['nutriScore']?.toString(),
+      energyKcal: _numFromJson(json['energyKcal']),
+      fat: _numFromJson(json['fat']),
+      saturatedFat: _numFromJson(json['saturatedFat']),
+      carbohydrates: _numFromJson(json['carbohydrates']),
+      sugars: _numFromJson(json['sugars']),
+      fiber: _numFromJson(json['fiber']),
+      proteins: _numFromJson(json['proteins']),
+      salt: _numFromJson(json['salt']),
     );
+  }
+
+  static num? _numFromJson(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    if (v is String) return double.tryParse(v);
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -78,6 +110,14 @@ class Product {
       if (price != null) 'price': price,
       if (currency != null) 'currency': currency,
       if (nutriScore != null) 'nutriScore': nutriScore,
+      if (energyKcal != null) 'energyKcal': energyKcal,
+      if (fat != null) 'fat': fat,
+      if (saturatedFat != null) 'saturatedFat': saturatedFat,
+      if (carbohydrates != null) 'carbohydrates': carbohydrates,
+      if (sugars != null) 'sugars': sugars,
+      if (fiber != null) 'fiber': fiber,
+      if (proteins != null) 'proteins': proteins,
+      if (salt != null) 'salt': salt,
     };
   }
 

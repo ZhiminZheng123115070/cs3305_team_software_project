@@ -116,22 +116,40 @@ class ProductDetailPage extends StatelessWidget {
               title: 'Nutrition Facts',
               icon: Icons.restaurant,
               iconColor: green,
-              child: Wrap(
-                spacing: 12,
-                runSpacing: 12,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (item.energyKcal != null)
-                    _nutrientChip('Calories', '${item.energyKcal}', 'kcal', orange),
-                  if (item.proteins != null)
-                    _nutrientChip('Protein', '${item.proteins}', 'g', green),
-                  if (item.carbohydrates != null)
-                    _nutrientChip('Carbs', '${item.carbohydrates}', 'g', green),
-                  if (item.fat != null)
-                    _nutrientChip('Fat', '${item.fat}', 'g', orange),
-                  if (item.fiber != null)
-                    _nutrientChip('Fiber', '${item.fiber}', 'g', green),
-                  if (item.salt != null)
-                    _nutrientChip('Salt', '${item.salt}', 'g', orange),
+                  Text(
+                    'Values from product record (per 100g or total per product by source).',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 10),
+                  _hasAnyNutrition(item)
+                      ? Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            if (item.energyKcal != null)
+                              _nutrientChip('Calories', '${item.energyKcal}', 'kcal', orange),
+                            if (item.proteins != null)
+                              _nutrientChip('Protein', '${item.proteins}', 'g', green),
+                            if (item.carbohydrates != null)
+                              _nutrientChip('Carbs', '${item.carbohydrates}', 'g', green),
+                            if (item.fat != null)
+                              _nutrientChip('Fat', '${item.fat}', 'g', orange),
+                            if (item.fiber != null)
+                              _nutrientChip('Fiber', '${item.fiber}', 'g', green),
+                            if (item.salt != null)
+                              _nutrientChip('Salt', '${item.salt}', 'g', orange),
+                          ],
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            'No nutrition data for this product. It may have been added before we saved OFF data, or OFF had no nutriments for this barcode.',
+                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                          ),
+                        ),
                 ],
               ),
             ),
@@ -154,6 +172,15 @@ class ProductDetailPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  static bool _hasAnyNutrition(CartItem item) {
+    return item.energyKcal != null ||
+        item.proteins != null ||
+        item.carbohydrates != null ||
+        item.fat != null ||
+        item.fiber != null ||
+        item.salt != null;
   }
 
   Widget _buildPlaceholder(double height, Color bg, Color iconColor) {

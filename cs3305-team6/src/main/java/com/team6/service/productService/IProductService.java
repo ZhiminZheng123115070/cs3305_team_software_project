@@ -4,6 +4,7 @@ import com.team6.pojo.Cart;
 import com.team6.pojo.Order;
 import com.team6.pojo.Product;
 import com.team6.pojo.Storage;
+import com.team6.request.AddProductRequest;
 import com.team6.request.CartListRequest;
 import com.team6.request.ProductSearchRequest;
 import com.team6.request.StorageListRequest;
@@ -29,6 +30,11 @@ public interface IProductService {
     public Product getProductByBarcode(String barcode);
 
     public Product addProduct(Product product);
+
+    /**
+     * Ensure product exists: return existing by barcode, or create from request (e.g. OFF data).
+     */
+    Product ensureProduct(AddProductRequest request);
 
     /**
      * Scanner flow lookup with OFF fallback and cache insert.

@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../api/login.dart';
 
 String _googleLoginPlatform() {
+  if (kIsWeb) return 'web';
   if (defaultTargetPlatform == TargetPlatform.android) return 'android';
   if (defaultTargetPlatform == TargetPlatform.iOS) return 'ios';
   return 'ios';

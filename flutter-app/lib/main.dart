@@ -1,4 +1,5 @@
 import 'package:app_links/app_links.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get.dart';
@@ -9,7 +10,36 @@ import 'package:ruoyi_app/api/system/user.dart';
 import 'package:ruoyi_app/routes/app_pages.dart';
 import 'package:ruoyi_app/utils/sputils.dart';
 
+/// Load user profile and routers only once per app session when entering home.
+/// Previously these ran on every route change and caused slow startup and login.
+bool _userAndRoutersLoaded = false;
+
+void _loadUserAndRoutersOnce() {
+  if (_userAndRoutersLoaded) return;
+  _userAndRoutersLoaded = true;
+  getInfo();
+  getUserProfile();
+  getRouters();
+}
+
 void main() {
+  GetStorage.init();
+  // Web: after Google login backend redirects to /#/home?token=xxx — save token so we open home logged in
+  if (kIsWeb) {
+    final fragment = Uri.base.fragment;
+    if (fragment.contains('token=')) {
+      final idx = fragment.indexOf('?');
+      if (idx >= 0 && idx < fragment.length - 1) {
+        final query = fragment.substring(idx + 1);
+        final params = Uri.splitQueryString(query);
+        final token = params['token'];
+        if (token != null && token.isNotEmpty) {
+          GetStorage().write('token', token);
+          SPUtil().setString('token', token);
+        }
+      }
+    }
+  }
   runApp(const MyApp());
 }
 
@@ -102,13 +132,11 @@ class _MyAppState extends State<MyApp> {
       initialRoute: initialRoute,
       getPages: AppPages.routes,
       routingCallback: (routing) {
-        if (routing?.current != "/login" &&
-            routing?.current != "/login/webView") {
-          getInfo();
-          getUserProfile();
-        }
         if (routing?.current == "/home") {
-          getRouters();
+          _loadUserAndRoutersOnce();
+        } else if (routing?.current == "/login" ||
+            routing?.current == "/login/webView") {
+          _userAndRoutersLoaded = false;
         }
       },
     );

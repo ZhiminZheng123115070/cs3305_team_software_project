@@ -1,6 +1,7 @@
 package com.team6.service.productService.impl;
 
 import com.github.pagehelper.PageHelper;
+import com.ruoyi.common.exception.ServiceException;
 import com.ruoyi.common.utils.SecurityUtils;
 import com.team6.mapper.CartMapper;
 import com.team6.mapper.OrderMapper;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +91,106 @@ public class ProductService implements IProductService {
     @Override
     public Product getProductByBarcode(String barcode){
         return productMapper.getProductBarcode(barcode);
+    }
+
+    /**
+     * Scanner flow: lookup by barcode (from DB). Returns null if not found.
+     * Can be extended later with OFF API fallback and cache insert.
+     */
+    @Override
+    public Product getProductByBarcodeForScanning(String barcode) {
+        return productMapper.getProductBarcode(barcode);
+    }
+
+    @Override
+    public Product addProduct(Product product) {
+        if (product.getBarcode() == null || product.getBarcode().trim().isEmpty()) {
+            throw new ServiceException("Product barcode cannot be empty");
+        }
+        Product existing = productMapper.getProductBarcode(product.getBarcode().trim());
+        if (existing != null) {
+            throw new ServiceException("Product with barcode already exists: " + product.getBarcode());
+        }
+        Date now = new Date();
+        if (product.getCreatedAt() == null) {
+            product.setCreatedAt(now);
+        }
+        if (product.getUpdatedAt() == null) {
+            product.setUpdatedAt(now);
+        }
+        if (product.getLastFetchedAt() == null) {
+            product.setLastFetchedAt(now);
+        }
+        // Defensive: DB column nutri_score is short (A-E). Normalize before insert.
+        product.setNutriScore(normalizeNutriScore(product.getNutriScore()));
+        productMapper.addProduct(product);
+        return productMapper.getProductBarcode(product.getBarcode());
+    }
+
+    /** Nutri-Score is one letter A-E; DB column is short. Normalize or null. */
+    private static String normalizeNutriScore(String s) {
+        if (s == null || s.trim().isEmpty()) return null;
+        String c = s.trim().toUpperCase().substring(0, 1);
+        return "A".equals(c) || "B".equals(c) || "C".equals(c) || "D".equals(c) || "E".equals(c) ? c : null;
+    }
+
+    /**
+     * Ensure product exists: return existing by barcode, or create from request (e.g. OFF data from app).
+     */
+    @Override
+    public Product ensureProduct(AddProductRequest request) {
+        if (request == null || request.getBarcode() == null || request.getBarcode().trim().isEmpty()) {
+            throw new ServiceException("Product barcode cannot be empty");
+        }
+        Product existing = productMapper.getProductBarcode(request.getBarcode().trim());
+        if (existing != null) {
+            // If request has nutrition and existing has none, update from OFF
+            boolean hasRequestNutrition = request.getEnergyKcal() != null || request.getFat() != null
+                || request.getProteins() != null || request.getCarbohydrates() != null
+                || request.getSugars() != null || request.getFiber() != null || request.getSalt() != null;
+            boolean existingMissingNutrition = existing.getEnergyKcal() == null && existing.getFat() == null
+                && existing.getProteins() == null && existing.getCarbohydrates() == null;
+            if (hasRequestNutrition && existingMissingNutrition) {
+                existing.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.ZERO);
+                existing.setFat(request.getFat() != null ? request.getFat() : BigDecimal.ZERO);
+                existing.setSaturatedFat(request.getSaturatedFat() != null ? request.getSaturatedFat() : BigDecimal.ZERO);
+                existing.setCarbohydrates(request.getCarbohydrates() != null ? request.getCarbohydrates() : BigDecimal.ZERO);
+                existing.setSugars(request.getSugars() != null ? request.getSugars() : BigDecimal.ZERO);
+                existing.setFiber(request.getFiber() != null ? request.getFiber() : BigDecimal.ZERO);
+                existing.setProteins(request.getProteins() != null ? request.getProteins() : BigDecimal.ZERO);
+                existing.setSalt(request.getSalt() != null ? request.getSalt() : BigDecimal.ZERO);
+                Date now = new Date();
+                existing.setLastFetchedAt(now);
+                existing.setUpdatedAt(now);
+                productMapper.updateProductNutrition(existing);
+                return productMapper.getProductBarcode(request.getBarcode().trim());
+            }
+            return existing;
+        }
+        Product product = new Product();
+        product.setBarcode(request.getBarcode().trim());
+        product.setName(request.getName() != null ? request.getName().trim() : "Unknown");
+        product.setBrand(request.getBrand());
+        product.setImageUrl(request.getImageUrl());
+        product.setPrice(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO);
+        String currency = request.getCurrency();
+        product.setCurrency(currency != null && !currency.trim().isEmpty() ? currency.trim() : "EUR");
+        product.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.ZERO);
+        product.setFat(request.getFat() != null ? request.getFat() : BigDecimal.ZERO);
+        product.setSaturatedFat(request.getSaturatedFat() != null ? request.getSaturatedFat() : BigDecimal.ZERO);
+        product.setCarbohydrates(request.getCarbohydrates() != null ? request.getCarbohydrates() : BigDecimal.ZERO);
+        product.setSugars(request.getSugars() != null ? request.getSugars() : BigDecimal.ZERO);
+        product.setFiber(request.getFiber() != null ? request.getFiber() : BigDecimal.ZERO);
+        product.setProteins(request.getProteins() != null ? request.getProteins() : BigDecimal.ZERO);
+        product.setSalt(request.getSalt() != null ? request.getSalt() : BigDecimal.ZERO);
+        product.setNutriScore(normalizeNutriScore(request.getNutriScore()));
+        String source = request.getSource();
+        product.setSource(source != null && !source.trim().isEmpty() ? source.trim() : "open_food_facts");
+        String sourceUrl = request.getSourceUrl();
+        product.setSourceUrl(sourceUrl != null ? sourceUrl : "");
+        String status = request.getProductStatus();
+        product.setProductStatus(status != null && !status.trim().isEmpty() ? status.trim() : "active");
+        return addProduct(product);
     }
 
     @Override

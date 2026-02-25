@@ -1,4 +1,5 @@
 import "package:dio/dio.dart";
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ruoyi_app/utils/sputils.dart';
@@ -34,10 +35,12 @@ class DioRequest {
     /// Request interceptor, response interceptor and error handling
     dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
       options.responseType = ResponseType.json;
-      print("================== Request Data ==========================");
-      print("url = ${options.uri.toString()}");
-      print("headers = ${options.headers}");
-      print("params = ${options.data}");
+      if (kDebugMode) {
+        print("================== Request Data ==========================");
+        print("url = ${options.uri.toString()}");
+        print("headers = ${options.headers}");
+        print("params = ${options.data}");
+      }
       return handler.next(options);
     }, onResponse: (response, handler) {
       if (response.realUri.path == "/login") {
@@ -91,15 +94,19 @@ class DioRequest {
           SPUtil().setString("token", response.data["token"]);
         }
       }
-      print("================== Response Data ==========================");
-      print("code = ${response.statusCode}");
-      print("data = ${response.data}");
+      if (kDebugMode) {
+        print("================== Response Data ==========================");
+        print("code = ${response.statusCode}");
+        print("data = ${response.data}");
+      }
       handler.next(response);
     }, onError: (DioError e, handler) {
       Get.snackbar("Network Error", "Request Failed");
-      print("================== Error Response Data ======================");
-      print("type = ${e.type}");
-      print("message = ${e.message}");
+      if (kDebugMode) {
+        print("================== Error Response Data ======================");
+        print("type = ${e.type}");
+        print("message = ${e.message}");
+      }
       return handler.next(e);
     }));
   }

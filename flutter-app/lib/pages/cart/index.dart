@@ -8,6 +8,16 @@ import 'package:ruoyi_app/models/product_model.dart';
 import 'package:ruoyi_app/routes/app_routes.dart';
 import 'package:ruoyi_app/widgets/barcode_scanner_sheet.dart';
 
+bool _productHasAnyNutrition(Product p) {
+  return p.energyKcal != null ||
+      p.fat != null ||
+      p.proteins != null ||
+      p.carbohydrates != null ||
+      p.sugars != null ||
+      p.fiber != null ||
+      p.salt != null;
+}
+
 class CartIndex extends StatefulWidget {
   const CartIndex({Key? key}) : super(key: key);
 
@@ -173,10 +183,32 @@ class _CartIndexState extends State<CartIndex> {
                 if (d != null && (d['code'] == 200 || d['code'] == '200')) {
                   final pd = d['data'];
                   if (pd != null) {
+                    var product = Product.fromJson(pd as Map<String, dynamic>);
                     setModalState(() {
-                      foundProduct = Product.fromJson(pd as Map<String, dynamic>);
+                      foundProduct = product;
                       errorMsg = '';
                     });
+                    // Cart only shows app_products: on scan immediately store in app_products (like seed data).
+                    try {
+                      final ensureResp = await ensureProduct(product);
+                      final ed = ensureResp.data as Map<String, dynamic>?;
+                      if (ensureResp.statusCode == 200 &&
+                          ed != null &&
+                          (ed['code'] == 200 || ed['code'] == '200')) {
+                        final productData = ed['data'];
+                        if (productData is Map<String, dynamic> && mounted) {
+                          setModalState(() {
+                            foundProduct = Product.fromJson(productData);
+                          });
+                        }
+                      }
+                    } catch (_) {
+                      if (mounted) {
+                        setModalState(() {
+                          errorMsg = 'Could not save product. Please try again.';
+                        });
+                      }
+                    }
                   } else {
                     setModalState(() {
                       errorMsg = d['msg']?.toString() ?? 'Product not found';
@@ -397,25 +429,60 @@ class _CartIndexState extends State<CartIndex> {
                           IconButton(
                             onPressed: () async {
                               try {
-                                final ok = foundProduct!.productId > 0
-                                    ? await _addToCartOrIncrement(foundProduct!.productId)
-                                    : await (() async {
-                                        final resp = await addProductToCartByBarcode(
-                                          foundProduct!.barcode,
-                                          quantity: 1,
-                                        );
-                                        final d = resp.data as Map?;
-                                        final success = resp.statusCode == 200 &&
-                                            d != null &&
-                                            (d['code'] == 200 || d['code'] == '200');
-                                        if (success) {
-                                          await _loadCart();
-                                          _showProductAddedToast();
-                                          return true;
-                                        }
-                                        return false;
-                                      })();
-                                if (mounted && ok) Navigator.pop(ctx);
+                                var product = foundProduct!;
+                                var productId = product.productId;
+                                // If product not in catalog yet (e.g. ensureProduct failed on scan), retry ensure once.
+                                if (productId <= 0) {
+                                  String? ensureError;
+                                  try {
+                                    final ensureResp = await ensureProduct(product);
+                                    final ed = ensureResp.data as Map<String, dynamic>?;
+                                    if (ensureResp.statusCode == 200 &&
+                                        ed != null &&
+                                        (ed['code'] == 200 || ed['code'] == '200')) {
+                                      final productData = ed['data'];
+                                      if (productData is Map<String, dynamic>) {
+                                        product = Product.fromJson(productData);
+                                        productId = product.productId;
+                                        if (mounted) setModalState(() => foundProduct = product);
+                                      }
+                                    } else {
+                                      ensureError = ed?['msg']?.toString();
+                                    }
+                                  } catch (e) {
+                                    ensureError = e.toString();
+                                  }
+                                  if (productId <= 0) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            ensureError != null && ensureError.isNotEmpty
+                                                ? ensureError
+                                                : 'Product not in catalog. Please scan again.',
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                    return;
+                                  }
+                                }
+                                final hadNutrition = _productHasAnyNutrition(product);
+                                final ok = await _addToCartOrIncrement(productId);
+                                if (ok) {
+                                  await _loadCart();
+                                  _showProductAddedToast();
+                                  if (mounted) {
+                                    if (!hadNutrition) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Added. No nutrition data for this product (e.g. not yet in Open Food Facts).'),
+                                        ),
+                                      );
+                                    }
+                                    Navigator.pop(ctx);
+                                  }
+                                }
                               } catch (e) {
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(

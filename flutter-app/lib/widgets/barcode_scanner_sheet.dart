@@ -14,6 +14,16 @@ class BarcodeScannerSheet extends StatefulWidget {
 class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
   final MobileScannerController _controller = MobileScannerController();
   bool _sent = false;
+  /// Defer camera widget to next frame so bottom sheet opens immediately without blocking.
+  bool _showCamera = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _showCamera = true);
+    });
+  }
 
   @override
   void dispose() {
@@ -60,10 +70,24 @@ class _BarcodeScannerSheetState extends State<BarcodeScannerSheet> {
               aspectRatio: 1,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: MobileScanner(
-                  controller: _controller,
-                  onDetect: _handleDetection,
-                ),
+                child: _showCamera
+                    ? MobileScanner(
+                        controller: _controller,
+                        onDetect: _handleDetection,
+                      )
+                    : const ColoredBox(
+                        color: Colors.black12,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 12),
+                              Text('Loading camera...'),
+                            ],
+                          ),
+                        ),
+                      ),
               ),
             ),
             const SizedBox(height: 12),
