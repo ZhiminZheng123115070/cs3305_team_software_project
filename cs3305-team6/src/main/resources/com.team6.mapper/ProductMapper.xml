@@ -89,6 +89,7 @@
             fiber = #{fiber},
             proteins = #{proteins},
             salt = #{salt},
+            product_status = #{productStatus},
             last_fetched_at = #{lastFetchedAt},
             updated_at = #{updatedAt}
         where product_id = #{productId}

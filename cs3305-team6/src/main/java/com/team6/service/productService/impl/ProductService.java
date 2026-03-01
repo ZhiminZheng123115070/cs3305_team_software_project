@@ -151,14 +151,15 @@ public class ProductService implements IProductService {
             boolean existingMissingNutrition = existing.getEnergyKcal() == null && existing.getFat() == null
                 && existing.getProteins() == null && existing.getCarbohydrates() == null;
             if (hasRequestNutrition && existingMissingNutrition) {
-                existing.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.ZERO);
-                existing.setFat(request.getFat() != null ? request.getFat() : BigDecimal.ZERO);
-                existing.setSaturatedFat(request.getSaturatedFat() != null ? request.getSaturatedFat() : BigDecimal.ZERO);
-                existing.setCarbohydrates(request.getCarbohydrates() != null ? request.getCarbohydrates() : BigDecimal.ZERO);
-                existing.setSugars(request.getSugars() != null ? request.getSugars() : BigDecimal.ZERO);
-                existing.setFiber(request.getFiber() != null ? request.getFiber() : BigDecimal.ZERO);
-                existing.setProteins(request.getProteins() != null ? request.getProteins() : BigDecimal.ZERO);
-                existing.setSalt(request.getSalt() != null ? request.getSalt() : BigDecimal.ZERO);
+                existing.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.valueOf(-1));
+                existing.setFat(request.getFat() != null ? request.getFat() : BigDecimal.valueOf(-1));
+                existing.setSaturatedFat(request.getSaturatedFat() != null ? request.getSaturatedFat() : BigDecimal.valueOf(-1));
+                existing.setCarbohydrates(request.getCarbohydrates() != null ? request.getCarbohydrates() : BigDecimal.valueOf(-1));
+                existing.setSugars(request.getSugars() != null ? request.getSugars() : BigDecimal.valueOf(-1));
+                existing.setFiber(request.getFiber() != null ? request.getFiber() : BigDecimal.valueOf(-1));
+                existing.setProteins(request.getProteins() != null ? request.getProteins() : BigDecimal.valueOf(-1));
+                existing.setSalt(request.getSalt() != null ? request.getSalt() : BigDecimal.valueOf(-1));
+                existing.setProductStatus("unknown");
                 Date now = new Date();
                 existing.setLastFetchedAt(now);
                 existing.setUpdatedAt(now);
@@ -175,21 +176,25 @@ public class ProductService implements IProductService {
         product.setPrice(request.getPrice() != null ? request.getPrice() : BigDecimal.ZERO);
         String currency = request.getCurrency();
         product.setCurrency(currency != null && !currency.trim().isEmpty() ? currency.trim() : "EUR");
-        product.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.ZERO);
-        product.setFat(request.getFat() != null ? request.getFat() : BigDecimal.ZERO);
-        product.setSaturatedFat(request.getSaturatedFat() != null ? request.getSaturatedFat() : BigDecimal.ZERO);
-        product.setCarbohydrates(request.getCarbohydrates() != null ? request.getCarbohydrates() : BigDecimal.ZERO);
-        product.setSugars(request.getSugars() != null ? request.getSugars() : BigDecimal.ZERO);
-        product.setFiber(request.getFiber() != null ? request.getFiber() : BigDecimal.ZERO);
-        product.setProteins(request.getProteins() != null ? request.getProteins() : BigDecimal.ZERO);
-        product.setSalt(request.getSalt() != null ? request.getSalt() : BigDecimal.ZERO);
+        product.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.valueOf(-1));
+        product.setFat(request.getFat() != null ? request.getFat() : BigDecimal.valueOf(-1));
+        product.setSaturatedFat(request.getSaturatedFat() != null ? request.getSaturatedFat() : BigDecimal.valueOf(-1));
+        product.setCarbohydrates(request.getCarbohydrates() != null ? request.getCarbohydrates() : BigDecimal.valueOf(-1));
+        product.setSugars(request.getSugars() != null ? request.getSugars() : BigDecimal.valueOf(-1));
+        product.setFiber(request.getFiber() != null ? request.getFiber() : BigDecimal.valueOf(-1));
+        product.setProteins(request.getProteins() != null ? request.getProteins() : BigDecimal.valueOf(-1));
+        product.setSalt(request.getSalt() != null ? request.getSalt() : BigDecimal.valueOf(-1));
         product.setNutriScore(normalizeNutriScore(request.getNutriScore()));
         String source = request.getSource();
         product.setSource(source != null && !source.trim().isEmpty() ? source.trim() : "open_food_facts");
         String sourceUrl = request.getSourceUrl();
         product.setSourceUrl(sourceUrl != null ? sourceUrl : "");
+        boolean hasMissingNutrition = request.getEnergyKcal() == null || request.getFat() == null
+            || request.getSaturatedFat() == null || request.getCarbohydrates() == null
+            || request.getSugars() == null || request.getFiber() == null
+            || request.getProteins() == null || request.getSalt() == null;
         String status = request.getProductStatus();
-        product.setProductStatus(status != null && !status.trim().isEmpty() ? status.trim() : "active");
+        product.setProductStatus(hasMissingNutrition ? "unknown" : (status != null && !status.trim().isEmpty() ? status.trim() : "active"));
         return addProduct(product);
     }
 
@@ -255,8 +260,13 @@ public class ProductService implements IProductService {
         if (cart.getSalt() != null) cart.setSalt(cart.getSalt().multiply(qty));
 
         Order order = Order.fromCartItem(cart, userId);
-        Storage storage=Storage.fromCartItem(cart, userId);
-        storageMapper.addStorage(storage);
+        Product product = cart.getBarcode() != null && !cart.getBarcode().trim().isEmpty()
+            ? productMapper.getProductBarcode(cart.getBarcode().trim()) : null;
+        // Only add to storage when we can determine product status and it is not "unknown" (diet log needs nutrition).
+        if (product != null && !"unknown".equalsIgnoreCase(product.getProductStatus())) {
+            Storage storage = Storage.fromCartItem(cart, userId);
+            storageMapper.addStorage(storage);
+        }
         return orderMapper.addOrder(order);
     }
 
