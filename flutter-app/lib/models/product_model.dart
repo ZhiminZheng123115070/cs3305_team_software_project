@@ -75,13 +75,13 @@ class Product {
       productId: (json['productId'] is int)
           ? json['productId'] as int
           : (json['productId'] as num?)?.toInt() ?? 0,
-      barcode: json['barcode']?.toString() ?? '',
-      productName: json['name']?.toString() ?? json['productName']?.toString() ?? 'Unknown Product',
-      brand: json['brand']?.toString(),
-      imageUrl: json['imageUrl']?.toString(),
-      price: json['price'] != null ? (json['price'] as num) : null,
-      currency: json['currency']?.toString(),
-      nutriScore: json['nutriScore']?.toString(),
+      barcode: _strFromJson(json['barcode']) ?? json['barcode']?.toString() ?? '',
+      productName: _strFromJson(json['name']) ?? _strFromJson(json['productName']) ?? 'Unknown Product',
+      brand: _strFromJson(json['brand']),
+      imageUrl: _strFromJson(json['imageUrl']),
+      price: _numFromJson(json['price']),
+      currency: _strFromJson(json['currency']),
+      nutriScore: _strFromJson(json['nutriScore']),
       energyKcal: _numFromJson(json['energyKcal']),
       fat: _numFromJson(json['fat']),
       saturatedFat: _numFromJson(json['saturatedFat']),
@@ -95,9 +95,21 @@ class Product {
 
   static num? _numFromJson(dynamic v) {
     if (v == null) return null;
+    if (v is num && (v == -1 || v == -1.0)) return null;
+    if (v is int && v == -1) return null;
     if (v is num) return v;
-    if (v is String) return double.tryParse(v);
+    if (v is String) {
+      final parsed = double.tryParse(v);
+      return (parsed != null && parsed != -1) ? parsed : null;
+    }
     return null;
+  }
+
+  static String? _strFromJson(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    if (s.isEmpty || s == '-1') return null;
+    return s;
   }
 
   Map<String, dynamic> toJson() {
@@ -124,6 +136,14 @@ class Product {
   String get summary {
     return 'Product ID: $productId\nBarcode: $barcode\nName: $productName';
   }
+}
+
+/// Display helper: show "unknown" when value is null (e.g. backend sent -1)
+String formatDisplayValue(dynamic value) {
+  if (value == null) return 'unknown';
+  if (value is num && (value == -1 || value == -1.0)) return 'unknown';
+  if (value is String && (value.isEmpty || value == '-1')) return 'unknown';
+  return value.toString();
 }
 
 // Parse JSON string to ApiResponse object

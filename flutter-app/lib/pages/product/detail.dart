@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ruoyi_app/models/cart_item_model.dart';
+import 'package:ruoyi_app/models/product_model.dart';
 
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({Key? key}) : super(key: key);
@@ -68,25 +69,23 @@ class ProductDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (item.brand != null && item.brand!.isNotEmpty)
-                    Text(
-                      item.brand!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  if (item.brand != null && item.brand!.isNotEmpty) const SizedBox(height: 4),
                   Text(
-                    item.name,
+                    formatDisplayValue(item.brand),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    formatDisplayValue(item.name),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  if (item.price != null)
-                    Row(
+                  Row(
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
@@ -124,32 +123,18 @@ class ProductDetailPage extends StatelessWidget {
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 10),
-                  _hasAnyNutrition(item)
-                      ? Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: [
-                            if (item.energyKcal != null)
-                              _nutrientChip('Calories', '${item.energyKcal}', 'kcal', orange),
-                            if (item.proteins != null)
-                              _nutrientChip('Protein', '${item.proteins}', 'g', green),
-                            if (item.carbohydrates != null)
-                              _nutrientChip('Carbs', '${item.carbohydrates}', 'g', green),
-                            if (item.fat != null)
-                              _nutrientChip('Fat', '${item.fat}', 'g', orange),
-                            if (item.fiber != null)
-                              _nutrientChip('Fiber', '${item.fiber}', 'g', green),
-                            if (item.salt != null)
-                              _nutrientChip('Salt', '${item.salt}', 'g', orange),
-                          ],
-                        )
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Text(
-                            'No nutrition data for this product. It may have been added before we saved OFF data, or OFF had no nutriments for this barcode.',
-                            style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
-                          ),
-                        ),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      _nutrientChip('Calories', formatDisplayValue(item.energyKcal), 'kcal', orange),
+                      _nutrientChip('Protein', formatDisplayValue(item.proteins), 'g', green),
+                      _nutrientChip('Carbs', formatDisplayValue(item.carbohydrates), 'g', green),
+                      _nutrientChip('Fat', formatDisplayValue(item.fat), 'g', orange),
+                      _nutrientChip('Fiber', formatDisplayValue(item.fiber), 'g', green),
+                      _nutrientChip('Salt', formatDisplayValue(item.salt), 'g', orange),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -158,12 +143,9 @@ class ProductDetailPage extends StatelessWidget {
               title: 'Product Information',
               child: Column(
                 children: [
-                  if (item.barcode.isNotEmpty)
-                    _infoRow(Icons.qr_code_2, 'Product Code', item.barcode, orange),
-                  if (item.currency != null)
-                    _infoRow(Icons.euro_symbol, 'Currency', item.currency!, green),
-                  if (item.nutriScore != null && item.nutriScore!.isNotEmpty)
-                    _infoRow(Icons.eco, 'Nutri-Score', item.nutriScore!, green),
+                  _infoRow(Icons.qr_code_2, 'Product Code', formatDisplayValue(item.barcode.isEmpty ? null : item.barcode), orange),
+                  _infoRow(Icons.euro_symbol, 'Currency', formatDisplayValue(item.currency), green),
+                  _infoRow(Icons.eco, 'Nutri-Score', formatDisplayValue(item.nutriScore), green),
                 ],
               ),
             ),

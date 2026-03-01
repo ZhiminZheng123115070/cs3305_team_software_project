@@ -44,22 +44,41 @@ class CartItem {
       cartId: _toInt(json['cartId']) ?? 0,
       quantity: _toInt(json['quantity']) ?? 1,
       productId: _toInt(json['productId']) ?? 0,
-      barcode: json['barcode']?.toString() ?? '',
-      name: json['name']?.toString() ?? 'Unknown',
-      brand: json['brand']?.toString(),
-      imageUrl: json['imageUrl']?.toString(),
-      price: json['price'] != null ? (json['price'] as num).toDouble() : null,
-      currency: json['currency']?.toString(),
-      energyKcal: json['energyKcal'] != null ? (json['energyKcal'] as num) : null,
-      fat: json['fat'] != null ? (json['fat'] as num) : null,
-      carbohydrates: json['carbohydrates'] != null ? (json['carbohydrates'] as num) : null,
-      fiber: json['fiber'] != null ? (json['fiber'] as num) : null,
-      proteins: json['proteins'] != null ? (json['proteins'] as num) : null,
-      salt: json['salt'] != null ? (json['salt'] as num) : null,
-      nutriScore: json['nutriScore']?.toString(),
+      barcode: _strFromJson(json['barcode']) ?? '',
+      name: _strFromJson(json['name']) ?? 'unknown',
+      brand: _strFromJson(json['brand']),
+      imageUrl: _strFromJson(json['imageUrl']),
+      price: _numFromJson(json['price']),
+      currency: _strFromJson(json['currency']),
+      energyKcal: _numFromJson(json['energyKcal']),
+      fat: _numFromJson(json['fat']),
+      carbohydrates: _numFromJson(json['carbohydrates']),
+      fiber: _numFromJson(json['fiber']),
+      proteins: _numFromJson(json['proteins']),
+      salt: _numFromJson(json['salt']),
+      nutriScore: _strFromJson(json['nutriScore']),
       updatedAt: json['updatedAt']?.toString(),
       purchasedAt: json['purchasedAt']?.toString(),
     );
+  }
+
+  static num? _numFromJson(dynamic v) {
+    if (v == null) return null;
+    if (v is num && (v == -1 || v == -1.0)) return null;
+    if (v is int && v == -1) return null;
+    if (v is num) return v;
+    if (v is String) {
+      final parsed = double.tryParse(v);
+      return (parsed != null && parsed != -1) ? parsed : null;
+    }
+    return null;
+  }
+
+  static String? _strFromJson(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    if (s.isEmpty || s == '-1') return null;
+    return s;
   }
 
   Map<String, dynamic> toJson() {
@@ -121,8 +140,9 @@ class CartItem {
 }
 
 String formatPrice(num? price) {
-  if (price == null) return '';
+  if (price == null || price == -1) return 'unknown';
   final v = price is int ? price.toDouble() : (price as num).toDouble();
+  if (v < 0 || v == -1) return 'unknown';
   if (v == v.truncate()) return '€${v.toInt()}';
   return '€${v.toStringAsFixed(2)}';
 }

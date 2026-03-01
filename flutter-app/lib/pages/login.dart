@@ -70,39 +70,33 @@ class _LoginIndexState extends State<LoginIndex> {
           const SizedBox(height: 32),
           Center(
             child: Container(
-              width: 72,
-              height: 72,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Colors.orange.shade400,
-                  Colors.green.shade400,
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  'static/logo200.png',
+                  fit: BoxFit.cover,
                 ),
-              ],
-            ),
-              child: const Icon(
-                Icons.local_offer_outlined,
-                size: 40,
-                color: Colors.white,
               ),
             ),
           ),
           const SizedBox(height: 20),
           const Text(
-            "Welcome Back",
+            "Welcome to DietPal",
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Color(0xFF2E2E2E),
             ),

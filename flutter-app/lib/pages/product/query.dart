@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ruoyi_app/api/product.dart';
 import 'package:ruoyi_app/models/cart_item_model.dart';
+import 'package:ruoyi_app/models/cart_item_model.dart';
 import 'package:ruoyi_app/models/product_model.dart';
 
 class ProductQueryPage extends StatefulWidget {
@@ -195,27 +196,20 @@ class _ProductQueryPageState extends State<ProductQueryPage> {
             const SizedBox(height: 24),
 
             // Product ID
-            _buildInfoRow('Product ID:', '${_product!.productId}'),
+            _buildInfoRow('Product ID:', formatDisplayValue(_product!.productId == -1 ? null : _product!.productId)),
             const SizedBox(height: 12),
 
             // Barcode
-            _buildInfoRow('Barcode:', _product!.barcode),
-            if (_product!.brand != null && _product!.brand!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildInfoRow('Brand:', _product!.brand!),
-            ],
-            if (_product!.price != null) ...[
-              const SizedBox(height: 12),
-              _buildInfoRow(
-                'Price:',
-                '${formatPrice(_product!.price)} ${_product!.currency ?? ''}'.trim(),
-              ),
-            ],
-            if (_product!.nutriScore != null &&
-                _product!.nutriScore!.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _buildInfoRow('Nutri-Score:', _product!.nutriScore!),
-            ],
+            _buildInfoRow('Barcode:', formatDisplayValue(_product!.barcode.isEmpty ? null : _product!.barcode)),
+            const SizedBox(height: 12),
+            _buildInfoRow('Brand:', formatDisplayValue(_product!.brand)),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              'Price:',
+              _formatPriceWithCurrency(_product!.price, _product!.currency),
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow('Nutri-Score:', formatDisplayValue(_product!.nutriScore)),
             const SizedBox(height: 12),
 
             // Search time
@@ -224,6 +218,12 @@ class _ProductQueryPageState extends State<ProductQueryPage> {
         ),
       ),
     );
+  }
+
+  String _formatPriceWithCurrency(num? price, String? currency) {
+    final p = formatPrice(price);
+    final c = formatDisplayValue(currency);
+    return c == 'unknown' ? p : '$p $c'.trim();
   }
 
   // Helper method to build info row
