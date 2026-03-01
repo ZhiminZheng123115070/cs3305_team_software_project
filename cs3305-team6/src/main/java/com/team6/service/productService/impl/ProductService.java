@@ -189,13 +189,20 @@ public class ProductService implements IProductService {
         product.setSource(source != null && !source.trim().isEmpty() ? source.trim() : "open_food_facts");
         String sourceUrl = request.getSourceUrl();
         product.setSourceUrl(sourceUrl != null ? sourceUrl : "");
-        boolean hasMissingNutrition = request.getEnergyKcal() == null || request.getFat() == null
-            || request.getSaturatedFat() == null || request.getCarbohydrates() == null
-            || request.getSugars() == null || request.getFiber() == null
-            || request.getProteins() == null || request.getSalt() == null;
+        // Only null or -1 counts as missing (0 is valid; some nutrients are genuinely 0).
+        boolean hasMissingNutrition = isNutritionMissing(request.getEnergyKcal()) || isNutritionMissing(request.getFat())
+            || isNutritionMissing(request.getSaturatedFat()) || isNutritionMissing(request.getCarbohydrates())
+            || isNutritionMissing(request.getSugars()) || isNutritionMissing(request.getFiber())
+            || isNutritionMissing(request.getProteins()) || isNutritionMissing(request.getSalt());
         String status = request.getProductStatus();
         product.setProductStatus(hasMissingNutrition ? "unknown" : (status != null && !status.trim().isEmpty() ? status.trim() : "active"));
         return addProduct(product);
+    }
+
+    /** Null or -1 means missing (0 is valid). */
+    private static boolean isNutritionMissing(java.math.BigDecimal v) {
+        if (v == null) return true;
+        return v.compareTo(java.math.BigDecimal.valueOf(-1)) == 0;
     }
 
     @Override
