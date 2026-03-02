@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../api/product.dart';
 import '../../api/user_info.dart';
 import '../../controllers/user_info_controller.dart';
+import '../../models/product_model.dart';
 import '../../models/storage_item_model.dart';
 import '../../utils/sputils.dart';
 
@@ -410,7 +411,7 @@ class _HomeIndexState extends State<HomeIndex> {
                           final item = _consumedItems[i];
                           final rate = (item['consumptionRate'] ?? 0) as num;
                           final consumedPct = (rate * 100).round();
-                          final calories = (item['energyKcal'] ?? 0) as num;
+                          final kcalDisplay = formatDisplayValue(item['energyKcal']);
                           final imageUrl = item['imageUrl']?.toString();
                           final name = item['name']?.toString() ?? '—';
                           return Container(
@@ -436,7 +437,7 @@ class _HomeIndexState extends State<HomeIndex> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                      Text('$consumedPct% consumed • ${(calories as num).toStringAsFixed(1)} kcal', style: TextStyle(fontSize: 12, color: _green)),
+                                      Text('$consumedPct% consumed • $kcalDisplay kcal', style: TextStyle(fontSize: 12, color: _green)),
                                     ],
                                   ),
                                 ),

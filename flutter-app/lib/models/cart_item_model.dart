@@ -6,6 +6,7 @@ class CartItem {
   final String name;
   final String? brand;
   final String? imageUrl;
+  final String? productStatus;
   final num? price;
   final String? currency;
   final num? energyKcal;
@@ -26,6 +27,7 @@ class CartItem {
     required this.name,
     this.brand,
     this.imageUrl,
+    this.productStatus,
     this.price,
     this.currency,
     this.energyKcal,
@@ -48,6 +50,7 @@ class CartItem {
       name: _strFromJson(json['name']) ?? 'unknown',
       brand: _strFromJson(json['brand']),
       imageUrl: _strFromJson(json['imageUrl']),
+      productStatus: _strFromJson(json['productStatus']),
       price: _numFromJson(json['price']),
       currency: _strFromJson(json['currency']),
       energyKcal: _numFromJson(json['energyKcal']),
@@ -69,7 +72,9 @@ class CartItem {
     if (v is num) return v;
     if (v is String) {
       final parsed = double.tryParse(v);
-      return (parsed != null && parsed != -1) ? parsed : null;
+      if (parsed == null) return null;
+      if (parsed == -1 || parsed == -1.0) return null;
+      return parsed;
     }
     return null;
   }
@@ -90,6 +95,7 @@ class CartItem {
       'name': name,
       if (brand != null) 'brand': brand,
       if (imageUrl != null) 'imageUrl': imageUrl,
+      if (productStatus != null) 'productStatus': productStatus,
       if (price != null) 'price': price,
       if (currency != null) 'currency': currency,
       if (energyKcal != null) 'energyKcal': energyKcal,
@@ -124,6 +130,7 @@ class CartItem {
       name: name,
       brand: brand,
       imageUrl: imageUrl,
+      productStatus: productStatus,
       price: price,
       currency: currency,
       energyKcal: energyKcal,

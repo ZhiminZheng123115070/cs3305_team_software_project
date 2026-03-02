@@ -44,6 +44,20 @@ CREATE TABLE app_products (
   UNIQUE KEY uk_products_barcode (barcode)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   COMMENT='Products cache (Open Food Facts + MVP price)';
+ALTER TABLE app_products MODIFY COLUMN price DECIMAL(7,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN currency CHAR(3) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN energy_kcal DECIMAL(6,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN fat DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN saturated_fat DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN carbohydrates DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN sugars DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN fiber DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN proteins DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN salt DECIMAL(5,2) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN nutri_score CHAR(1) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN source VARCHAR(32) DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN source_url TEXT DEFAULT NULL;
+ALTER TABLE app_products MODIFY COLUMN product_status VARCHAR(16) DEFAULT NULL;
 
 -- 50 mock products (optimized for cart pagination, search, and sorting)
 -- Price range: 0.99-15.99 EUR (for price sorting)

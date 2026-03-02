@@ -50,9 +50,17 @@
     <select id="findOrdersbyUserId" resultMap="orderResultMap">
         select o.order_id, o.user_id, o.product_id,
                o.quantity, o.unit_price, o.line_total, o.currency, o.created_at,
-               p.name, p.brand, p.image_url,
-               p.energy_kcal, p.fat, p.saturated_fat, p.carbohydrates, p.sugars,
-               p.fiber, p.proteins, p.salt
+               coalesce(p.name, o.name) as name,
+               coalesce(p.brand, o.brand) as brand,
+               coalesce(p.image_url, o.image_url) as image_url,
+               coalesce(p.energy_kcal, o.energy_kcal) as energy_kcal,
+               coalesce(p.fat, o.fat) as fat,
+               coalesce(p.saturated_fat, o.saturated_fat) as saturated_fat,
+               coalesce(p.carbohydrates, o.carbohydrates) as carbohydrates,
+               coalesce(p.sugars, o.sugars) as sugars,
+               coalesce(p.fiber, o.fiber) as fiber,
+               coalesce(p.proteins, o.proteins) as proteins,
+               coalesce(p.salt, o.salt) as salt
         from app_orders o
         left join app_products p on o.product_id = p.product_id
         where o.user_id = #{userId}

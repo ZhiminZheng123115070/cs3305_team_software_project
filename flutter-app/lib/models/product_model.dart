@@ -100,7 +100,9 @@ class Product {
     if (v is num) return v;
     if (v is String) {
       final parsed = double.tryParse(v);
-      return (parsed != null && parsed != -1) ? parsed : null;
+      if (parsed == null) return null;
+      if (parsed == -1 || parsed == -1.0) return null;
+      return parsed;
     }
     return null;
   }
@@ -138,11 +140,17 @@ class Product {
   }
 }
 
-/// Display helper: show "unknown" when value is null (e.g. backend sent -1)
+/// Display helper: show "unknown" only for null or -1 (missing data). Genuine 0 shows as "0".
 String formatDisplayValue(dynamic value) {
   if (value == null) return 'unknown';
   if (value is num && (value == -1 || value == -1.0)) return 'unknown';
-  if (value is String && (value.isEmpty || value == '-1')) return 'unknown';
+  if (value is String) {
+    final s = value.trim();
+    if (s.isEmpty) return 'unknown';
+    if (s == '-1' || s == '-1.0' || s == '-1.00') return 'unknown';
+    final n = double.tryParse(s);
+    if (n != null && (n == -1 || n == -1.0)) return 'unknown';
+  }
   return value.toString();
 }
 

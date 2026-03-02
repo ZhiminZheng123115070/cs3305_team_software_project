@@ -2,6 +2,7 @@ package com.team6.controller.productController;
 
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.team6.response.AddOrderResult;
 import com.team6.service.productService.IProductService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,9 @@ public class productOrderController {
 
     @PostMapping()
     public AjaxResult addOrder(@RequestParam("cart_id") Long cartId){
-        if(productService.addOrder(cartId) > 0){
-            return AjaxResult.success("Add cart in order successfully");
+        AddOrderResult result = productService.addOrder(cartId);
+        if (result.isOrderAdded()) {
+            return AjaxResult.success("Add cart in order successfully", result);
         }
         return AjaxResult.error("Update cart in order failure");
     }

@@ -518,9 +518,28 @@ class _CartIndexState extends State<CartIndex> {
       if (resp.statusCode == 200 && resp.data != null) {
         final d = resp.data as Map?;
         if (d != null && (d['code'] == 200 || d['code'] == '200')) {
+          final data = d['data'];
+          final storageAdded = data is Map ? (data['storageAdded'] ?? true) : true;
           await deleteCart(item.cartId);
           await _loadOrderHistory();
           await _loadCart();
+          if (mounted && storageAdded == false) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Order added'),
+                content: const Text(
+                  'Added to order successfully. This item could not be added to storage because nutrition information is missing.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('OK'),
+                  ),
+                ],
+              ),
+            );
+          }
           return;
         }
       }

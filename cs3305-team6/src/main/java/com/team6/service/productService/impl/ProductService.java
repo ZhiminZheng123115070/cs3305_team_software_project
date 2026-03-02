@@ -16,6 +16,7 @@ import com.team6.response.CartItemResponse;
 import com.team6.response.OrderResponse;
 import com.team6.response.ProductSearchResponse;
 import com.team6.response.StorageResponse;
+import com.team6.response.AddOrderResult;
 import com.team6.service.productService.IProductService;
 import org.apache.catalina.security.SecurityUtil;
 import org.apache.ibatis.annotations.Param;
@@ -135,6 +136,24 @@ public class ProductService implements IProductService {
     }
 
     /**
+     * Ensure product exists by barcode only; creates minimal "Unknown" product if not in DB.
+     * Allows cart/order flow when product is null (e.g. barcode not cached yet).
+     */
+    @Override
+    public Product ensureProductByBarcodeOnly(String barcode) {
+        if (barcode == null || barcode.trim().isEmpty()) {
+            throw new ServiceException("Barcode cannot be empty");
+        }
+        Product existing = productMapper.getProductBarcode(barcode.trim());
+        if (existing != null) {
+            return existing;
+        }
+        AddProductRequest req = new AddProductRequest();
+        req.setBarcode(barcode.trim());
+        return ensureProduct(req);
+    }
+
+    /**
      * Ensure product exists: return existing by barcode, or create from request (e.g. OFF data from app).
      */
     @Override
@@ -149,7 +168,9 @@ public class ProductService implements IProductService {
                 || request.getProteins() != null || request.getCarbohydrates() != null
                 || request.getSugars() != null || request.getFiber() != null || request.getSalt() != null;
             boolean existingMissingNutrition = existing.getEnergyKcal() == null && existing.getFat() == null
-                && existing.getProteins() == null && existing.getCarbohydrates() == null;
+                && existing.getProteins() == null && existing.getCarbohydrates() == null
+                && existing.getSaturatedFat() == null && existing.getSugars() == null
+                && existing.getFiber() == null && existing.getSalt() == null;
             if (hasRequestNutrition && existingMissingNutrition) {
                 existing.setEnergyKcal(request.getEnergyKcal() != null ? request.getEnergyKcal() : BigDecimal.valueOf(-1));
                 existing.setFat(request.getFat() != null ? request.getFat() : BigDecimal.valueOf(-1));
@@ -249,13 +270,13 @@ public class ProductService implements IProductService {
 
 
     @Override
-    public int addOrder(Long cartId) {
+    public AddOrderResult addOrder(Long cartId) {
         Long userId = SecurityUtils.getUserId();
         CartItemResponse cart = cartMapper.getCartItemByCartId(userId, cartId);
         if (cart == null) {
-            return 0;
+            return new AddOrderResult(false, false);
         }
-        int quantity = cart.getQuantity();
+        int quantity = (cart.getQuantity() != null && cart.getQuantity() > 0) ? cart.getQuantity() : 1;
         BigDecimal qty = BigDecimal.valueOf(quantity);
         if (cart.getEnergyKcal() != null) cart.setEnergyKcal(cart.getEnergyKcal().multiply(qty));
         if (cart.getFat() != null) cart.setFat(cart.getFat().multiply(qty));
@@ -269,12 +290,14 @@ public class ProductService implements IProductService {
         Order order = Order.fromCartItem(cart, userId);
         Product product = cart.getBarcode() != null && !cart.getBarcode().trim().isEmpty()
             ? productMapper.getProductBarcode(cart.getBarcode().trim()) : null;
-        // Only add to storage when we can determine product status and it is not "unknown" (diet log needs nutrition).
-        if (product != null && !"unknown".equalsIgnoreCase(product.getProductStatus())) {
+        boolean storageAdded = false;
+        if (product != null && product.getProductStatus() != null && !"unknown".equalsIgnoreCase(product.getProductStatus())) {
             Storage storage = Storage.fromCartItem(cart, userId);
             storageMapper.addStorage(storage);
+            storageAdded = true;
         }
-        return orderMapper.addOrder(order);
+        int rows = orderMapper.addOrder(order);
+        return new AddOrderResult(rows > 0, storageAdded);
     }
 
     @Override
@@ -294,16 +317,16 @@ public class ProductService implements IProductService {
         if(storage==null){
             throw new RuntimeException("Storage didn't existed");
         }
-
-
-
         BigDecimal consumption=storage.getConsumption();
+        if (consumption == null) {
+            throw new RuntimeException("Storage consumption is null");
+        }
         consumption=consumption.subtract(consumptionRate);
-        if(consumption !=null && consumption.compareTo(BigDecimal.ZERO)<0){
+        if(consumption.compareTo(BigDecimal.ZERO)<0){
             throw new RuntimeException("Insufficient stock in storage");
         }
 
-        if(consumption !=null && consumption.compareTo(BigDecimal.ZERO)==0){
+        if(consumption.compareTo(BigDecimal.ZERO)==0){
             storageMapper.deleteStorage(storage.getStorageId(),storage.getUserId());
             return 1;
         }

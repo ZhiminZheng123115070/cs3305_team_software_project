@@ -40,15 +40,16 @@ public class Storage {
         Storage storage=new Storage();
         storage.setUserId(userId);
         storage.setProductId(cart.getProductId());
-        storage.setName(cart.getName());
-        storage.setBrand(cart.getBrand());
+        storage.setName(cart.getName() != null && !cart.getName().trim().isEmpty() ? cart.getName().trim() : "Unknown");
+        storage.setBrand(cart.getBrand() != null ? cart.getBrand().trim() : "");
         storage.setImageUrl(cart.getImageUrl());
         storage.setQuantity(cart.getQuantity());
-        storage.setUnitPrice(cart.getPrice());
-        storage.setLineTotal(cart.getPrice() != null && cart.getQuantity() != null
-           ? cart.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity()))
-           : null);
-        storage.setCurrency(cart.getCurrency());
+        BigDecimal price = cart.getPrice() != null ? cart.getPrice() : BigDecimal.ZERO;
+        storage.setUnitPrice(price);
+        storage.setLineTotal(cart.getQuantity() != null
+            ? price.multiply(BigDecimal.valueOf(cart.getQuantity()))
+            : BigDecimal.ZERO);
+        storage.setCurrency(cart.getCurrency() != null && !cart.getCurrency().trim().isEmpty() ? cart.getCurrency().trim() : "EUR");
         storage.setEnergyKcal(cart.getEnergyKcal());
         storage.setFat(cart.getFat());
         storage.setSaturatedFat(cart.getSaturatedFat());

@@ -15,6 +15,7 @@ public class CartItemResponse {
     private String name;
     private String brand;
     private String imageUrl;
+    private String productStatus;
     private BigDecimal price;
     private String currency;
     private BigDecimal energyKcal;
@@ -82,6 +83,14 @@ public class CartItemResponse {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public String getProductStatus() {
+        return productStatus;
+    }
+
+    public void setProductStatus(String productStatus) {
+        this.productStatus = productStatus;
     }
 
     public BigDecimal getPrice() {

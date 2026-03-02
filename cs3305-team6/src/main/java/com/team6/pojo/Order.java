@@ -35,20 +35,23 @@ public class Order {
 
     /**
      * Build Order from cart item and userId; lineTotal = unitPrice * quantity.
+     * If price is null (e.g. unknown product), use zero so DB unit_price/line_total are never null.
+     * Null-safe name/brand/currency for DB NOT NULL columns when product/cart data is missing.
      */
     public static Order fromCartItem(CartItemResponse cart, Long userId) {
         Order order = new Order();
         order.setUserId(userId);
         order.setProductId(cart.getProductId());
-        order.setName(cart.getName());
-        order.setBrand(cart.getBrand());
+        order.setName(cart.getName() != null && !cart.getName().trim().isEmpty() ? cart.getName().trim() : "Unknown");
+        order.setBrand(cart.getBrand() != null ? cart.getBrand().trim() : "");
         order.setImageUrl(cart.getImageUrl());
         order.setQuantity(cart.getQuantity());
-        order.setUnitPrice(cart.getPrice());
-        order.setLineTotal(cart.getPrice() != null && cart.getQuantity() != null
-                ? cart.getPrice().multiply(BigDecimal.valueOf(cart.getQuantity()))
-                : null);
-        order.setCurrency(cart.getCurrency());
+        BigDecimal price = cart.getPrice() != null ? cart.getPrice() : BigDecimal.ZERO;
+        order.setUnitPrice(price);
+        order.setLineTotal(cart.getQuantity() != null
+                ? price.multiply(BigDecimal.valueOf(cart.getQuantity()))
+                : BigDecimal.ZERO);
+        order.setCurrency(cart.getCurrency() != null && !cart.getCurrency().trim().isEmpty() ? cart.getCurrency().trim() : "EUR");
         order.setEnergyKcal(cart.getEnergyKcal());
         order.setFat(cart.getFat());
         order.setSaturatedFat(cart.getSaturatedFat());

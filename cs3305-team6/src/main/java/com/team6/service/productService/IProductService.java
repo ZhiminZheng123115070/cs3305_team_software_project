@@ -8,6 +8,7 @@ import com.team6.request.AddProductRequest;
 import com.team6.request.CartListRequest;
 import com.team6.request.ProductSearchRequest;
 import com.team6.request.StorageListRequest;
+import com.team6.response.AddOrderResult;
 import com.team6.response.CartItemResponse;
 import com.team6.response.OrderResponse;
 import com.team6.response.ProductSearchResponse;
@@ -37,6 +38,12 @@ public interface IProductService {
     Product ensureProduct(AddProductRequest request);
 
     /**
+     * Ensure product exists by barcode only; creates minimal "Unknown" product if not found.
+     * Use when adding to cart by barcode and product may not be in DB yet.
+     */
+    Product ensureProductByBarcodeOnly(String barcode);
+
+    /**
      * Scanner flow lookup with OFF fallback and cache insert.
      */
     public Product getProductByBarcodeForScanning(String barcode);
@@ -59,7 +66,7 @@ public interface IProductService {
 
 
 
-    public int addOrder(Long cartId);
+    public AddOrderResult addOrder(Long cartId);
 
 
     public List<OrderResponse> getOrdersByUserId();

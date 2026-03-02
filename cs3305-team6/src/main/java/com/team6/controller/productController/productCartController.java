@@ -34,16 +34,22 @@ public class productCartController {
 
     /**
      * Resolve/cache by barcode via scanning flow, then add to cart.
+     * When product is not in DB, creates a minimal "Unknown" product first so cart can accept it.
      */
     @PostMapping("/barcode")
     public AjaxResult addCartByBarcode(@RequestParam("barcode") String barcode,
                                        @RequestParam(defaultValue = "1") Integer quantity){
-        Product p = productService.getProductByBarcodeForScanning(barcode);
-        if (p == null || p.getProductId() == null || p.getProductId() <= 0) {
-            return AjaxResult.error("Product not cached in DB yet");
+        if (barcode == null || barcode.trim().isEmpty()) {
+            return AjaxResult.error("Barcode is required");
         }
-
-        if(productService.addCart(p.getProductId(), quantity) > 0){
+        Product p = productService.getProductByBarcodeForScanning(barcode.trim());
+        if (p == null) {
+            p = productService.ensureProductByBarcodeOnly(barcode.trim());
+        }
+        if (p == null || p.getProductId() == null || p.getProductId() <= 0) {
+            return AjaxResult.error("Could not find or create product for barcode");
+        }
+        if (productService.addCart(p.getProductId(), quantity) > 0) {
             return AjaxResult.success("Add product in Cart successfully", p);
         }
         return AjaxResult.error("Add product in Cart failure");

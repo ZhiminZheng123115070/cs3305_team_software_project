@@ -6,6 +6,11 @@ import 'package:ruoyi_app/models/product_model.dart';
 class ProductDetailPage extends StatelessWidget {
   const ProductDetailPage({Key? key}) : super(key: key);
 
+  static bool _isUnknownProduct(CartItem item) {
+    final s = item.productStatus;
+    return s == null || s.trim().isEmpty || s.toLowerCase() == 'unknown';
+  }
+
   @override
   Widget build(BuildContext context) {
     final item = Get.arguments as CartItem?;
@@ -64,6 +69,14 @@ class ProductDetailPage extends StatelessWidget {
                     : _buildPlaceholder(220, lightGreen, green),
               ),
             ),
+            if (_isUnknownProduct(item))
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'unknown',
+                  style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                ),
+              ),
             const SizedBox(height: 16),
             _buildCard(
               child: Column(
@@ -127,12 +140,12 @@ class ProductDetailPage extends StatelessWidget {
                     spacing: 12,
                     runSpacing: 12,
                     children: [
-                      _nutrientChip('Calories', formatDisplayValue(item.energyKcal), 'kcal', orange),
-                      _nutrientChip('Protein', formatDisplayValue(item.proteins), 'g', green),
-                      _nutrientChip('Carbs', formatDisplayValue(item.carbohydrates), 'g', green),
-                      _nutrientChip('Fat', formatDisplayValue(item.fat), 'g', orange),
-                      _nutrientChip('Fiber', formatDisplayValue(item.fiber), 'g', green),
-                      _nutrientChip('Salt', formatDisplayValue(item.salt), 'g', orange),
+                      _nutrientChip('Calories', _isUnknownProduct(item) ? 'unknown' : formatDisplayValue(item.energyKcal), 'kcal', orange),
+                      _nutrientChip('Protein', _isUnknownProduct(item) ? 'unknown' : formatDisplayValue(item.proteins), 'g', green),
+                      _nutrientChip('Carbs', _isUnknownProduct(item) ? 'unknown' : formatDisplayValue(item.carbohydrates), 'g', green),
+                      _nutrientChip('Fat', _isUnknownProduct(item) ? 'unknown' : formatDisplayValue(item.fat), 'g', orange),
+                      _nutrientChip('Fiber', _isUnknownProduct(item) ? 'unknown' : formatDisplayValue(item.fiber), 'g', green),
+                      _nutrientChip('Salt', _isUnknownProduct(item) ? 'unknown' : formatDisplayValue(item.salt), 'g', orange),
                     ],
                   ),
                 ],

@@ -336,14 +336,14 @@ Future<Product?> _fetchFromOpenFoodFacts(String barcode) async {
       price: null,
       currency: null,
       nutriScore: _normalizeNutriScore(nutriScore),
-      energyKcal: energyKcal ?? 0,
-      fat: fat ?? 0,
-      saturatedFat: saturatedFat ?? 0,
-      carbohydrates: carbohydrates ?? 0,
-      sugars: sugars ?? 0,
-      fiber: fiber ?? 0,
-      proteins: proteins ?? 0,
-      salt: salt ?? 0,
+      energyKcal: energyKcal,
+      fat: fat,
+      saturatedFat: saturatedFat,
+      carbohydrates: carbohydrates,
+      sugars: sugars,
+      fiber: fiber,
+      proteins: proteins,
+      salt: salt,
     );
   } catch (_) {
     return null;

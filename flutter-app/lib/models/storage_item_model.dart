@@ -50,15 +50,29 @@ class StorageItem {
       brand: json['brand']?.toString(),
       imageUrl: json['imageUrl']?.toString(),
       quantity: _toInt(json['quantity']) ?? 1,
-      unitPrice: json['unitPrice'] != null ? (json['unitPrice'] as num) : null,
-      lineTotal: json['lineTotal'] != null ? (json['lineTotal'] as num) : null,
+      unitPrice: _numFromJson(json['unitPrice']),
+      lineTotal: _numFromJson(json['lineTotal']),
       currency: json['currency']?.toString(),
-      energyKcal: json['energyKcal'] != null ? (json['energyKcal'] as num) : null,
-      fat: json['fat'] != null ? (json['fat'] as num) : null,
-      carbohydrates: json['carbohydrates'] != null ? (json['carbohydrates'] as num) : null,
-      proteins: json['proteins'] != null ? (json['proteins'] as num) : null,
+      energyKcal: _numFromJson(json['energyKcal']),
+      fat: _numFromJson(json['fat']),
+      carbohydrates: _numFromJson(json['carbohydrates']),
+      proteins: _numFromJson(json['proteins']),
       consumption: consumption.clamp(0.0, 1.0),
     );
+  }
+
+  static num? _numFromJson(dynamic v) {
+    if (v == null) return null;
+    if (v is num && (v == -1 || v == -1.0)) return null;
+    if (v is int && v == -1) return null;
+    if (v is num) return v;
+    if (v is String) {
+      final parsed = double.tryParse(v);
+      if (parsed == null) return null;
+      if (parsed == -1 || parsed == -1.0) return null;
+      return parsed;
+    }
+    return null;
   }
 
   static int? _toInt(dynamic v) {

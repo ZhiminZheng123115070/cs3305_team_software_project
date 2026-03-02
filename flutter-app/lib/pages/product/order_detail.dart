@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:ruoyi_app/models/cart_item_model.dart';
 import 'package:ruoyi_app/models/order_item_model.dart';
+import 'package:ruoyi_app/models/product_model.dart';
 
 class OrderDetailPage extends StatelessWidget {
   const OrderDetailPage({Key? key}) : super(key: key);
@@ -100,36 +101,24 @@ class OrderDetailPage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      if (item.unitPrice != null)
-                        Text(
-                          '${formatPrice(item.unitPrice)} per unit',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey.shade600,
-                          ),
+                      Text(
+                        '${formatPrice(item.unitPrice)} per unit',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
                         ),
+                      ),
                     ],
                   ),
-                  if (item.lineTotal != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'Line total: ${formatPrice(item.lineTotal)}',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: green,
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Line total: ${formatPrice(item.lineTotal ?? item.displayPrice)}',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: green,
                     ),
-                  ] else if (item.displayPrice != null) ...[
-                    Text(
-                      formatPrice(item.displayPrice),
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: green,
-                      ),
-                    ),
-                  ],
+                  ),
                 ],
               ),
             ),
@@ -142,18 +131,12 @@ class OrderDetailPage extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  if (item.energyKcal != null)
-                    _nutrientChip('Calories', '${item.energyKcal}', 'kcal', orange),
-                  if (item.proteins != null)
-                    _nutrientChip('Protein', '${item.proteins}', 'g', green),
-                  if (item.carbohydrates != null)
-                    _nutrientChip('Carbs', '${item.carbohydrates}', 'g', green),
-                  if (item.fat != null)
-                    _nutrientChip('Fat', '${item.fat}', 'g', orange),
-                  if (item.fiber != null)
-                    _nutrientChip('Fiber', '${item.fiber}', 'g', green),
-                  if (item.salt != null)
-                    _nutrientChip('Salt', '${item.salt}', 'g', orange),
+                  _nutrientChip('Calories', formatDisplayValue(item.energyKcal), 'kcal', orange),
+                  _nutrientChip('Protein', formatDisplayValue(item.proteins), 'g', green),
+                  _nutrientChip('Carbs', formatDisplayValue(item.carbohydrates), 'g', green),
+                  _nutrientChip('Fat', formatDisplayValue(item.fat), 'g', orange),
+                  _nutrientChip('Fiber', formatDisplayValue(item.fiber), 'g', green),
+                  _nutrientChip('Salt', formatDisplayValue(item.salt), 'g', orange),
                 ],
               ),
             ),
