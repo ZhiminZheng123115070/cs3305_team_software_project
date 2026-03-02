@@ -1,21 +1,18 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/route_manager.dart';
-import 'package:ruoyi_app/icon/ruoyi_icon.dart';
-
 import 'package:url_launcher/url_launcher.dart';
 
 import '../api/login.dart';
 
-/// Resolve Google OAuth platform for redirect_uri: Android uses 10.0.2.2, iOS uses localhost.
 String _googleLoginPlatform() {
+  if (kIsWeb) return 'web';
   if (defaultTargetPlatform == TargetPlatform.android) return 'android';
   if (defaultTargetPlatform == TargetPlatform.iOS) return 'ios';
-  return 'ios'; // desktop / other: use same as iOS (localhost)
+  return 'ios';
 }
 
 class MyHome extends StatelessWidget {
@@ -24,15 +21,10 @@ class MyHome extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text(
-            "Login",
-            style: TextStyle(color: Colors.black),
-          ),
-          backgroundColor: Colors.transparent, // Set background color to transparent
-          shadowColor: Colors.transparent,
-        ),
-        body: const Login());
+      body: SafeArea(
+        child: const Login(),
+      ),
+    );
   }
 }
 
@@ -45,263 +37,620 @@ class Login extends StatelessWidget {
   }
 }
 
-// ignore: must_be_immutable
 class LoginIndex extends StatefulWidget {
-  LoginIndex({Key? key}) : super(key: key);
+  const LoginIndex({Key? key}) : super(key: key);
 
   @override
-  // ignore: no_logic_in_create_state
-  State<StatefulWidget> createState() {
-    // TODO: implement createState
-    // ignore: no_logic_in_create_state
-    return _LoginIndexState();
-  }
+  State<LoginIndex> createState() => _LoginIndexState();
 }
 
 class _LoginIndexState extends State<LoginIndex> {
   var password = "";
   var username = "";
+  var _obscurePassword = true;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Flex(
-      direction: Axis.vertical,
-      children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.only(left: 40, right: 40),
-            children: [
-              const SizedBox(
-                height: 60,
-              ),
-              const Center(
-                child: LogInIcon(),
-              ),
-              const SizedBox(
-                height: 70,
-              ),
-              Container(
-                height: 50,
-                padding: EdgeInsets.only(left: 10),
-                decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(25.0)),
-                    border: Border.all(width: 1.0)),
-                child: TextField(
-                  onChanged: (value) {
-                    username = value;
-                  },
-                  decoration: const InputDecoration(
-                    icon: Icon(RuoYiIcons.user),
-                    border: InputBorder.none,
-                    hintText: "Please enter username",
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color(0xFFFFF8E1),
+            Color(0xFFE8F5E9),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 32),
+          Center(
+            child: Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.08),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
                   ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: Image.asset(
+                  'static/logo200.png',
+                  fit: BoxFit.cover,
                 ),
               ),
-              const SizedBox(
-                height: 25,
-              ),
-              Container(
-                height: 50,
-                padding: EdgeInsets.only(left: 10),
-                decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.all(Radius.circular(25.0)),
-                    border: Border.all(width: 1.0)),
-                child: TextField(
-                  obscureText: true,
-                  onChanged: (value) {
-                    password = value;
-                  },
-                  decoration: const InputDecoration(
-                    icon: Icon(RuoYiIcons.password),
-                    border: InputBorder.none,
-                    hintText: "Please enter password",
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "Welcome to DietPal",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2E2E2E),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Sign in to your account",
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 28),
+          Expanded(child: _buildLoginCard(context)),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Don't have an account? ",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade700,
                   ),
                 ),
-              ),
-              const SizedBox(
-                height: 25,
-              ),
-              Container(
-                  height: 50,
-                  decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(25.0)),
-                  ),
-                  child: TextButton(
-                    style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all(Colors.blue),
-                        shape: MaterialStateProperty.all(
-                            const RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(25.0))))),
-                    onPressed: () async {
-                      if (username.isEmpty) {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) =>
-                                const AlertDialog(
-                                  content: Text(
-                                    'Username cannot be empty!',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ));
-                        return;
-                      }
-                      if (password.isEmpty) {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) =>
-                                const AlertDialog(
-                                  content: Text(
-                                    'Password cannot be empty!',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ));
-                        return;
-                      }
-                      var requestData = {
-                        "uuid": "",
-                        "username": username.trim(),
-                        "password": password.trim(),
-                        "code": ""
-                      };
-
-                      var data = await logInByClient(requestData);
-                      var resp = jsonDecode(data.toString());
-
-                      if (resp["code"] == 200) {
-                        // ignore: use_build_context_synchronously
-                        Get.toNamed("/home");
-                      } else {
-                        showDialog(
-                            context: context,
-                            builder: (BuildContext context) => AlertDialog(
-                                  content: Text(
-                                    resp["msg"],
-                                    style: const TextStyle(color: Colors.cyan),
-                                  ),
-                                ));
-                      }
-                    },
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
-                    ),
-                  )),
-              const SizedBox(height: 20),
-              // Google login: opens in system browser (Google OAuth policy); browser returns to app after login
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () async {
-                    try {
-                      final platform = _googleLoginPlatform();
-                      var response = await getGoogleAuthUrl(platform: platform);
-                      var data = response.data as Map<String, dynamic>?;
-                      if (data != null &&
-                          data['code'] == 200 &&
-                          data['authUrl'] != null) {
-                        final authUrl = data['authUrl'] as String;
-                        // prompt=select_account: each time open account picker so user can retry with another account after a failed login
-                        // _t: cache-bust so each tap opens a fresh auth page instead of browser showing cached error page
-                        final parsed = Uri.tryParse(authUrl);
-                        final params = Map<String, String>.from(parsed?.queryParameters ?? {});
-                        params['prompt'] = 'select_account';
-                        params['_t'] = DateTime.now().millisecondsSinceEpoch.toString();
-                        final uri = parsed != null
-                            ? parsed.replace(queryParameters: params)
-                            : Uri.tryParse(authUrl);
-                        if (uri != null &&
-                            await canLaunchUrl(uri)) {
-                          await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication);
-                          // Login result returns to app via deep link ruoyiapp://google-login?code=xxx, handled in main
-                        } else {
-                          showDialog(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              content: Text(
-                                'Cannot open browser',
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          );
-                        }
-                      } else {
-                        showDialog(
-                          context: context,
-                          builder: (ctx) => AlertDialog(
-                            content: Text(
-                              data?['msg'] ?? 'Failed to get Google auth URL',
-                              style: const TextStyle(color: Colors.red),
-                            ),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      showDialog(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          content: Text(
-                            'Error: $e',
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  icon: const Icon(Icons.g_mobiledata, size: 24),
-                  label: const Text("Google login"),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.grey),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                GestureDetector(
+                  onTap: () {},
+                  child: const Text(
+                    "Sign Up",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2E7D32),
                     ),
                   ),
                 ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoginCard(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Username
+            Text(
+              "Username",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade800,
               ),
-              const SizedBox(height: 12),
-              // Mobile login button (icon on left; for custom icon put mobile_icon.png in static/images/ and uncomment below)
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              onChanged: (value) => username = value,
+              decoration: InputDecoration(
+                hintText: "Enter your username",
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Password
+            Text(
+              "Password",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade800,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              onChanged: (value) => password = value,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                hintText: "Enter your password",
+                filled: true,
+                fillColor: Colors.grey.shade50,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.grey.shade600,
+                    size: 22,
+                  ),
                   onPressed: () {
-                    Get.toNamed("/mobileLogin");
+                    setState(() => _obscurePassword = !_obscurePassword);
                   },
-                  icon: const Icon(Icons.phone_android, size: 24),
-                  label: const Text("Mobile login"),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.grey),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+            ),
+            const SizedBox(height: 28),
+            // Sign In button
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _onSignIn,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E7D32),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text("Sign In", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // OR CONTINUE WITH
+            Row(
+              children: [
+                Expanded(child: Divider(color: Colors.grey.shade400)),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Text(
+                    "OR CONTINUE WITH",
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
+                ),
+                Expanded(child: Divider(color: Colors.grey.shade400)),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Google
+            SizedBox(
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: _onGoogleLogin,
+                icon: Icon(Icons.g_mobiledata, size: 22, color: Colors.grey.shade700),
+                label: Text(
+                  "Google",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade800,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey.shade300),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Phone
+            SizedBox(
+              height: 50,
+              child: OutlinedButton.icon(
+                onPressed: () => _showPhoneLoginDialog(context),
+                icon: Icon(Icons.phone_android, size: 22, color: Colors.grey.shade700),
+                label: Text(
+                  "Phone",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey.shade800,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  side: BorderSide(color: Colors.grey.shade300),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Text(
+                "Demo Mode: Enter any username and password",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onSignIn() async {
+    if (username.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (ctx) => const AlertDialog(
+          content: Text('Username cannot be empty!', style: TextStyle(color: Colors.red)),
+        ),
+      );
+      return;
+    }
+    if (password.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (ctx) => const AlertDialog(
+          content: Text('Password cannot be empty!', style: TextStyle(color: Colors.red)),
+        ),
+      );
+      return;
+    }
+    var requestData = {
+      "uuid": "",
+      "username": username.trim(),
+      "password": password.trim(),
+      "code": "",
+    };
+    try {
+      var data = await logInByClient(requestData);
+      var resp = jsonDecode(data.toString());
+      if (resp["code"] == 200) {
+        if (mounted) Get.toNamed("/home");
+      } else {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              content: Text(resp["msg"]?.toString() ?? "Login failed",
+                  style: const TextStyle(color: Colors.cyan)),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            content: Text('Error: $e', style: const TextStyle(color: Colors.red)),
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPhoneLoginDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const _PhoneLoginDialog(),
+    );
+  }
+
+  Future<void> _onGoogleLogin() async {
+    try {
+      final platform = _googleLoginPlatform();
+      var response = await getGoogleAuthUrl(platform: platform);
+      var data = response.data as Map<String, dynamic>?;
+      if (data != null &&
+          data['code'] == 200 &&
+          data['authUrl'] != null) {
+        final authUrl = data['authUrl'] as String;
+        final parsed = Uri.tryParse(authUrl);
+        final params = Map<String, String>.from(parsed?.queryParameters ?? {});
+        params['prompt'] = 'select_account';
+        params['_t'] = DateTime.now().millisecondsSinceEpoch.toString();
+        final uri = parsed != null
+            ? parsed.replace(queryParameters: params)
+            : Uri.tryParse(authUrl);
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          if (mounted) {
+            showDialog(
+              context: context,
+              builder: (ctx) => const AlertDialog(
+                content: Text('Cannot open browser', style: TextStyle(color: Colors.red)),
+              ),
+            );
+          }
+        }
+      } else {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              content: Text(
+                data?['msg']?.toString() ?? 'Failed to get Google auth URL',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            content: Text('Error: $e', style: const TextStyle(color: Colors.red)),
+          ),
+        );
+      }
+    }
+  }
+}
+
+/// Phone login dialog: phone number, send code, verification code input, login.
+class _PhoneLoginDialog extends StatefulWidget {
+  const _PhoneLoginDialog();
+
+  @override
+  State<_PhoneLoginDialog> createState() => _PhoneLoginDialogState();
+}
+
+class _PhoneLoginDialogState extends State<_PhoneLoginDialog> {
+  final _phoneController = TextEditingController();
+  final _codeController = TextEditingController();
+  bool _sending = false;
+  bool _loggingIn = false;
+  String? _sendTip;
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendCode() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      _sendTip = 'Please enter phone number';
+      setState(() {});
+      return;
+    }
+    setState(() {
+      _sending = true;
+      _sendTip = null;
+    });
+    try {
+      final resp = await sendSmsCode({'phone': phone});
+      final data = resp.data;
+      if (data is Map && data['code'] == 200) {
+        setState(() => _sendTip = 'Code sent');
+      } else {
+        setState(() => _sendTip = data is Map ? (data['msg'] ?? 'Send failed') : 'Send failed');
+      }
+    } catch (e) {
+      setState(() => _sendTip = 'Error: $e');
+    } finally {
+      setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _login() async {
+    final phone = _phoneController.text.trim();
+    final code = _codeController.text.trim();
+    if (phone.isEmpty) {
+      setState(() => _sendTip = 'Please enter phone number');
+      return;
+    }
+    if (code.isEmpty) {
+      setState(() => _sendTip = 'Please enter verification code');
+      return;
+    }
+    setState(() {
+      _loggingIn = true;
+      _sendTip = null;
+    });
+    try {
+      final resp = await mobileLogin({'phone': phone, 'code': code});
+      final data = resp.data;
+      if (data is Map && data['code'] == 200) {
+        if (mounted) Navigator.of(context).pop();
+        Get.offAllNamed('/home');
+      } else {
+        setState(() => _sendTip = data is Map ? (data['msg'] ?? 'Login failed') : 'Login failed');
+      }
+    } catch (e) {
+      setState(() => _sendTip = 'Error: $e');
+    } finally {
+      setState(() => _loggingIn = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Title bar
+              Row(
+                children: [
+                  Icon(Icons.phone_android, color: Colors.green.shade700, size: 26),
+                  const SizedBox(width: 10),
+                  const Text(
+                    'Phone Login',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF2E2E2E)),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Phone Number
+              Text(
+                'Phone Number',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey.shade800),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _phoneController,
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration(
+                  hintText: 'Enter your phone number',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 16),
+              // Send Verification Code
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _sending ? null : _sendCode,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF9CCC65),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(_sending ? 'Sending...' : 'Send Verification Code'),
+                ),
+              ),
+              if (_sendTip != null) ...[
+                const SizedBox(height: 8),
+                Text(_sendTip!, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+              ],
+              const SizedBox(height: 20),
+              // Verification Code
+              Text(
+                'Verification Code',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.grey.shade800),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _codeController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Enter verification code',
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+              const SizedBox(height: 20),
+              // Login button
+              SizedBox(
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _loggingIn ? null : _login,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E7D32),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(_loggingIn ? 'Logging in...' : 'Sign In'),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Center(
+                child: Text(
+                  'Demo Mode: Enter any phone number',
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                 ),
               ),
             ],
           ),
-        ),
-      ],
-    ));
-  }
-}
-
-class LogInIcon extends StatelessWidget {
-  const LogInIcon({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        "Password Login",
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w300,
         ),
       ),
     );

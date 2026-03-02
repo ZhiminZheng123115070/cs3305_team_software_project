@@ -1,21 +1,18 @@
 import "package:dio/dio.dart";
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:ruoyi_app/utils/sputils.dart';
 
 /// Dio network request configuration table (custom)
 class DioConfig {
-  /// Backend base URL by platform:
-  /// - Web: localhost:8080
-  /// - iOS simulator: 127.0.0.1:8080 (use Mac IP on real device if needed)
-  /// - Android emulator: 10.0.2.2:8080
-  static String get baseURL {
-    if (kIsWeb) return "http://localhost:8080";
-    if (defaultTargetPlatform == TargetPlatform.iOS) return "http://127.0.0.1:8080";
-    if (defaultTargetPlatform == TargetPlatform.android) return "http://10.0.2.2:8080";
-    return "http://localhost:8080";
-  }
+  /// Default public backend URL.
+  /// Override for local testing with:
+  /// flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8081
+  static const String baseURL = String.fromEnvironment(
+    "API_BASE_URL",
+    defaultValue: "https://dietpal.duckdns.org",
+  );
   static const timeout = 10000;
 }
 
@@ -38,10 +35,12 @@ class DioRequest {
     /// Request interceptor, response interceptor and error handling
     dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) {
       options.responseType = ResponseType.json;
-      print("================== Request Data ==========================");
-      print("url = ${options.uri.toString()}");
-      print("headers = ${options.headers}");
-      print("params = ${options.data}");
+      if (kDebugMode) {
+        print("================== Request Data ==========================");
+        print("url = ${options.uri.toString()}");
+        print("headers = ${options.headers}");
+        print("params = ${options.data}");
+      }
       return handler.next(options);
     }, onResponse: (response, handler) {
       if (response.realUri.path == "/login") {
@@ -95,15 +94,19 @@ class DioRequest {
           SPUtil().setString("token", response.data["token"]);
         }
       }
-      print("================== Response Data ==========================");
-      print("code = ${response.statusCode}");
-      print("data = ${response.data}");
+      if (kDebugMode) {
+        print("================== Response Data ==========================");
+        print("code = ${response.statusCode}");
+        print("data = ${response.data}");
+      }
       handler.next(response);
     }, onError: (DioError e, handler) {
       Get.snackbar("Network Error", "Request Failed");
-      print("================== Error Response Data ======================");
-      print("type = ${e.type}");
-      print("message = ${e.message}");
+      if (kDebugMode) {
+        print("================== Error Response Data ======================");
+        print("type = ${e.type}");
+        print("message = ${e.message}");
+      }
       return handler.next(e);
     }));
   }
@@ -119,51 +122,56 @@ class DioRequest {
     data,
     Map<String, dynamic>? queryParameters,
     CancelToken? cancelToken,
-    Options? options,
+    Options? extraOptions,
     ProgressCallback? onSendProgress,
     ProgressCallback? onReceiveProgress,
   }) async {
-    Options options;
+    Options opts;
     if (isToken) {
       if (!GetStorage().hasData("token")) {
         var token = SPUtil().get("token");
         if (token != null) {
           GetStorage().write("token", token);
         } else {
-          ///TODO If it's also empty, clear all information and navigate to login page logic
           GetStorage().remove("token");
           SPUtil().remove("token");
           Get.offNamed("/login");
         }
       }
-      options = Options(
+      opts = Options(
         headers: {
-          "content-type": "application/json; charset=utf-8",
+          "content-type": extraOptions?.contentType ?? "application/json; charset=utf-8",
           "Authorization": "Bearer ${GetStorage().read("token")}",
         },
         method: method,
       );
     } else {
-      options = Options(
-        headers: {"content-type": "application/json; charset=utf-8"},
+      opts = Options(
+        headers: {"content-type": extraOptions?.contentType ?? "application/json; charset=utf-8"},
         method: method,
       );
     }
     switch (method) {
       case "get":
         return await dio.request(path,
-            queryParameters: queryParameters, options: options);
+            queryParameters: queryParameters, options: opts);
       case "post":
-        return await dio.request(path, data: data, options: options);
+        return await dio.request(path,
+            data: data,
+            queryParameters: queryParameters,
+            options: opts);
       case "put":
         return await dio.request(
           path,
-          queryParameters: data,
+          queryParameters: queryParameters ?? data,
           data: data,
-          options: options,
+          options: opts,
         );
       case "delete":
-        return await dio.request(path, data: data, options: options);
+        return await dio.request(path,
+            data: data,
+            queryParameters: queryParameters,
+            options: opts);
     }
   }
 }

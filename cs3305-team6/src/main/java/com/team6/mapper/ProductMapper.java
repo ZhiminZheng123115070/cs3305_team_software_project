@@ -17,4 +17,16 @@ public interface ProductMapper {
      * @return Product information
      */
     Product getProductBarcode(String barcode);
+
+    /**
+     * Insert a product
+     * @param product Product entity
+     * @return rows affected
+     */
+    int addProduct(Product product);
+
+    /**
+     * Update nutrition fields for an existing product by product_id.
+     */
+    int updateProductNutrition(Product product);
 }

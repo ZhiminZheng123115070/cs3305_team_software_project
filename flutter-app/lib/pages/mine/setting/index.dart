@@ -15,6 +15,46 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  static const String _dailyCalorieTargetKey = 'daily_calorie_target';
+  static const int _defaultCalorieTarget = 2000;
+
+  void _showDailyCalorieTargetDialog(BuildContext context) {
+    final current = SPUtil().get<int>(_dailyCalorieTargetKey) ?? _defaultCalorieTarget;
+    final controller = TextEditingController(text: current.toString());
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Daily calorie target'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'Target (kcal per day)',
+            hintText: '2000',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final v = int.tryParse(controller.text);
+              if (v != null && v > 0) {
+                SPUtil().setInt(_dailyCalorieTargetKey, v);
+                setState(() {});
+                Get.snackbar('Saved', 'Daily calorie target set to $v kcal');
+              }
+              Navigator.pop(ctx);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -33,7 +73,7 @@ class _SettingsState extends State<Settings> {
               height: 15,
             ),
             Container(
-              height: 210,
+              height: 255,
               decoration: BoxDecoration(
                   color: Colors.white,
                   border: Border.all(
@@ -46,6 +86,15 @@ class _SettingsState extends State<Settings> {
               margin: EdgeInsets.only(top: 15, left: 15, right: 15),
               child: Column(
                 children: [
+                  ListTile(
+                    onTap: () {
+                      _showDailyCalorieTargetDialog(context);
+                    },
+                    leading: Icon(Icons.local_fire_department),
+                    title: Text("Daily calorie target"),
+                    trailing: Icon(Icons.keyboard_arrow_right),
+                  ),
+                  Divider(),
                   ListTile(
                     onTap: () {
                       Get.toNamed("/home/settings/pwdIndex");

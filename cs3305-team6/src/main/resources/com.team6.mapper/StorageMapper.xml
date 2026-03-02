@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team6.mapper.StorageMapper">
+
+    <resultMap id="storageResultMap" type="com.team6.pojo.Storage">
+        <id column="storage_id" property="storageId"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="name" property="name"/>
+        <result column="brand" property="brand"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="quantity" property="quantity"/>
+        <result column="unit_price" property="unitPrice"/>
+        <result column="line_total" property="lineTotal"/>
+        <result column="currency" property="currency"/>
+        <result column="energy_kcal" property="energyKcal"/>
+        <result column="fat" property="fat"/>
+        <result column="saturated_fat" property="saturatedFat"/>
+        <result column="carbohydrates" property="carbohydrates"/>
+        <result column="sugars" property="sugars"/>
+        <result column="fiber" property="fiber"/>
+        <result column="proteins" property="proteins"/>
+        <result column="salt" property="salt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="consumption" property="consumption"/>
+    </resultMap>
+    <resultMap id="storageResponseResultMap" type="com.team6.response.StorageResponse">
+        <id column="storage_id" property="storageId"/>
+        <result column="user_id" property="userId"/>
+        <result column="product_id" property="productId"/>
+        <result column="name" property="name"/>
+        <result column="brand" property="brand"/>
+        <result column="image_url" property="imageUrl"/>
+        <result column="quantity" property="quantity"/>
+        <result column="unit_price" property="unitPrice"/>
+        <result column="line_total" property="lineTotal"/>
+        <result column="currency" property="currency"/>
+        <result column="energy_kcal" property="energyKcal"/>
+        <result column="fat" property="fat"/>
+        <result column="saturated_fat" property="saturatedFat"/>
+        <result column="carbohydrates" property="carbohydrates"/>
+        <result column="sugars" property="sugars"/>
+        <result column="fiber" property="fiber"/>
+        <result column="proteins" property="proteins"/>
+        <result column="salt" property="salt"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="consumption" property="consumption"/>
+    </resultMap>
+    
+    <insert id="addStorage" useGeneratedKeys="true" keyProperty="storageId">
+        insert into app_user_storage (user_id, product_id, name, brand, image_url, quantity, unit_price, line_total, currency,
+                                     energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt, 
+                                     created_at, consumption, updated_at)
+        values (#{userId}, #{productId}, #{name}, #{brand}, #{imageUrl}, #{quantity}, #{unitPrice}, #{lineTotal}, #{currency},
+                #{energyKcal}, #{fat}, #{saturatedFat}, #{carbohydrates}, #{sugars}, #{fiber}, #{proteins}, #{salt}, 
+                #{createdAt}, #{consumption}, CURRENT_TIMESTAMP)
+    </insert>
+    
+    <update id="updateStorageQuantity">
+        update app_user_storage
+        <set>
+            <if test="quantity != null">
+                quantity = #{quantity},
+            </if>
+            updated_at = CURRENT_TIMESTAMP
+        </set>
+        where storage_id = #{storageId} and user_id = #{userId}
+    </update>
+    <update id="updateStorage">
+
+            update app_user_storage
+            <set>
+                <if test="consumption != null">
+                    consumption = #{consumption},
+                </if>
+                updated_at = CURRENT_TIMESTAMP
+            </set>
+            where storage_id = #{storageId} and user_id = #{userId}
+
+    </update>
+
+    <delete id="deleteStorage">
+        delete from app_user_storage
+        where storage_id = #{storageId} and user_id = #{userId}
+    </delete>
+
+
+    <select id="findStorageById" resultMap="storageResponseResultMap">
+        select storage_id,user_id, product_id, name, brand, image_url, quantity, unit_price, line_total, currency,
+               energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
+               created_at, consumption, updated_at
+        from app_user_storage
+        where storage_id=#{storageId}
+    </select>
+    <select id="findStoragesByUserId" resultMap="storageResponseResultMap">
+        select storage_id, user_id, product_id, name, brand, image_url, quantity, unit_price, line_total, currency,
+               energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
+               created_at, consumption, updated_at
+        from app_user_storage
+        where user_id=#{userId}
+        order by updated_at desc, created_at desc
+    </select>
+
+
+</mapper>

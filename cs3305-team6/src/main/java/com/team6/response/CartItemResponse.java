@@ -1,5 +1,6 @@
 package com.team6.response;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -14,16 +15,17 @@ public class CartItemResponse {
     private String name;
     private String brand;
     private String imageUrl;
-    private Long price;
+    private String productStatus;
+    private BigDecimal price;
     private String currency;
-    private Long energyKcal;
-    private Long fat;
-    private Long saturatedFat;
-    private Long carbohydrates;
-    private Long sugars;
-    private Long fiber;
-    private Long proteins;
-    private Long salt;
+    private BigDecimal energyKcal;
+    private BigDecimal fat;
+    private BigDecimal saturatedFat;
+    private BigDecimal carbohydrates;
+    private BigDecimal sugars;
+    private BigDecimal fiber;
+    private BigDecimal proteins;
+    private BigDecimal salt;
     private String nutriScore;
     private Date updatedAt;
 
@@ -83,11 +85,19 @@ public class CartItemResponse {
         this.imageUrl = imageUrl;
     }
 
-    public Long getPrice() {
+    public String getProductStatus() {
+        return productStatus;
+    }
+
+    public void setProductStatus(String productStatus) {
+        this.productStatus = productStatus;
+    }
+
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Long price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -99,67 +109,67 @@ public class CartItemResponse {
         this.currency = currency;
     }
 
-    public Long getEnergyKcal() {
+    public BigDecimal getEnergyKcal() {
         return energyKcal;
     }
 
-    public void setEnergyKcal(Long energyKcal) {
+    public void setEnergyKcal(BigDecimal energyKcal) {
         this.energyKcal = energyKcal;
     }
 
-    public Long getFat() {
+    public BigDecimal getFat() {
         return fat;
     }
 
-    public void setFat(Long fat) {
+    public void setFat(BigDecimal fat) {
         this.fat = fat;
     }
 
-    public Long getSaturatedFat() {
+    public BigDecimal getSaturatedFat() {
         return saturatedFat;
     }
 
-    public void setSaturatedFat(Long saturatedFat) {
+    public void setSaturatedFat(BigDecimal saturatedFat) {
         this.saturatedFat = saturatedFat;
     }
 
-    public Long getCarbohydrates() {
+    public BigDecimal getCarbohydrates() {
         return carbohydrates;
     }
 
-    public void setCarbohydrates(Long carbohydrates) {
+    public void setCarbohydrates(BigDecimal carbohydrates) {
         this.carbohydrates = carbohydrates;
     }
 
-    public Long getSugars() {
+    public BigDecimal getSugars() {
         return sugars;
     }
 
-    public void setSugars(Long sugars) {
+    public void setSugars(BigDecimal sugars) {
         this.sugars = sugars;
     }
 
-    public Long getFiber() {
+    public BigDecimal getFiber() {
         return fiber;
     }
 
-    public void setFiber(Long fiber) {
+    public void setFiber(BigDecimal fiber) {
         this.fiber = fiber;
     }
 
-    public Long getProteins() {
+    public BigDecimal getProteins() {
         return proteins;
     }
 
-    public void setProteins(Long proteins) {
+    public void setProteins(BigDecimal proteins) {
         this.proteins = proteins;
     }
 
-    public Long getSalt() {
+    public BigDecimal getSalt() {
         return salt;
     }
 
-    public void setSalt(Long salt) {
+    public void setSalt(BigDecimal salt) {
         this.salt = salt;
     }
 

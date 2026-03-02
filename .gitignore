@@ -44,6 +44,7 @@ application-local.yml
 **/application.yml
 **/application-druid.yml
 **/application-local.yml
+**/application-google-local.yml
 
 ######################################################################
 # macOS

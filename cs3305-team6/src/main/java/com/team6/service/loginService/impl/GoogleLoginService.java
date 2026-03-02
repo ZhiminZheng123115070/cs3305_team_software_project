@@ -33,13 +33,18 @@ public class GoogleLoginService implements IGoogleLoginService {
     @Value("${google.clientSecret}")
     private String clientSecret;
 
-    @Value("${google.redirectUri}")
+    @Value("${google.redirectUri:https://dietpal.duckdns.org/oauth2/google/callback}")
     private String redirectUri;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Override
     public String getAccessToken(String code) {
+        return getAccessToken(code, redirectUri);
+    }
+
+    @Override
+    public String getAccessToken(String code, String redirectUriToUse) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -47,7 +52,7 @@ public class GoogleLoginService implements IGoogleLoginService {
         params.add("code", code);
         params.add("client_id", clientId);
         params.add("client_secret", clientSecret);
-        params.add("redirect_uri", redirectUri);
+        params.add("redirect_uri", redirectUriToUse);
         params.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);

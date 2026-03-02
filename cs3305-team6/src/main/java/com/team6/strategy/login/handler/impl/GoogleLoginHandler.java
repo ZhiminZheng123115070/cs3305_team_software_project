@@ -60,8 +60,11 @@ public class GoogleLoginHandler extends AbstractLoginHandler implements Initiali
 
         log.info("Google login callback, code: {}", code);
 
-        // 1. Exchange code for access_token
-        String accessToken = googleLoginService.getAccessToken(code);
+        // 1. Exchange code for access_token (use redirectUri from params if provided, for dynamic host)
+        String redirectUri = params.get("redirectUri");
+        String accessToken = redirectUri != null && !redirectUri.isEmpty()
+            ? googleLoginService.getAccessToken(code, redirectUri)
+            : googleLoginService.getAccessToken(code);
         log.info("Got access_token");
 
         // 2. Get Google user info

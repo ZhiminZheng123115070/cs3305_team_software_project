@@ -28,6 +28,16 @@
         <result column="created_at" property="createdAt"/>
         <result column="updated_at" property="updatedAt"/>
     </resultMap>
+    <insert id="addProduct" useGeneratedKeys="true" keyProperty="productId">
+        insert into app_products (barcode, name, brand, image_url, price, currency,
+                                 energy_kcal, fat, saturated_fat, carbohydrates, sugars, fiber, proteins, salt,
+                                 nutri_score, source, source_url, product_status, last_fetched_at,
+                                 created_at, updated_at)
+        values (#{barcode}, #{name}, #{brand}, #{imageUrl}, #{price}, #{currency},
+                #{energyKcal}, #{fat}, #{saturatedFat}, #{carbohydrates}, #{sugars}, #{fiber},
+                #{proteins}, #{salt}, #{nutriScore}, #{source}, #{sourceUrl}, #{productStatus}, #{lastFetchedAt},
+                #{createdAt}, #{updatedAt})
+    </insert>
 
     <!-- Product search: query app_products table only -->
     <select id="getProductBarcode" resultMap="productResultMap">
@@ -37,6 +47,52 @@
                created_at, updated_at
         from app_products
         where barcode = #{barcode}
+        limit 1
     </select>
+
+    <insert id="insertProduct" parameterType="com.team6.pojo.Product" useGeneratedKeys="true" keyProperty="productId">
+        insert into app_products
+        (
+            barcode,
+            name,
+            brand,
+            image_url,
+            currency,
+            nutri_score,
+            source,
+            source_url,
+            product_status,
+            last_fetched_at
+        )
+        values
+        (
+            #{barcode},
+            #{name},
+            #{brand},
+            #{imageUrl},
+            #{currency},
+            #{nutriScore},
+            #{source},
+            #{sourceUrl},
+            #{productStatus},
+            #{lastFetchedAt}
+        )
+    </insert>
+
+    <update id="updateProductNutrition">
+        update app_products
+        set energy_kcal = #{energyKcal},
+            fat = #{fat},
+            saturated_fat = #{saturatedFat},
+            carbohydrates = #{carbohydrates},
+            sugars = #{sugars},
+            fiber = #{fiber},
+            proteins = #{proteins},
+            salt = #{salt},
+            product_status = #{productStatus},
+            last_fetched_at = #{lastFetchedAt},
+            updated_at = #{updatedAt}
+        where product_id = #{productId}
+    </update>
 
 </mapper>

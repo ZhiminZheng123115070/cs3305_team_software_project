@@ -21,8 +21,6 @@ abstract class AppRoutes {
 
   static const googleWebView = "/googleWebView";
 
-  static const mobileLogin = "/mobileLogin";
-
   static const user = "/system/user/index";
 
   static const role = "/system/role/index";
@@ -43,4 +41,6 @@ abstract class AppRoutes {
   static const swagger = "/tool/swagger/index";
 
   static const productQuery = "/product/query";
+  static const productDetail = "/product/detail";
+  static const orderDetail = "/product/order/detail";
 }

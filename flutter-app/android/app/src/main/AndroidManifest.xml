@@ -12,7 +12,7 @@
         </intent>
     </queries>
    <application
-        android:label="ruoyi_app"
+        android:label="DietPal"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

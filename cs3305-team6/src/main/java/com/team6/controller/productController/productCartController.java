@@ -2,8 +2,9 @@ package com.team6.controller.productController;
 
 import com.ruoyi.common.annotation.Anonymous;
 import com.ruoyi.common.core.domain.AjaxResult;
+import com.team6.pojo.Product;
 import com.team6.request.CartListRequest;
-import com.team6.request.ProductSearchRequest;
+import com.team6.response.CartItemResponse;
 import com.team6.service.productService.IProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -31,6 +32,29 @@ public class productCartController {
         return AjaxResult.error("Update product in Cart failure");
     }
 
+    /**
+     * Resolve/cache by barcode via scanning flow, then add to cart.
+     * When product is not in DB, creates a minimal "Unknown" product first so cart can accept it.
+     */
+    @PostMapping("/barcode")
+    public AjaxResult addCartByBarcode(@RequestParam("barcode") String barcode,
+                                       @RequestParam(defaultValue = "1") Integer quantity){
+        if (barcode == null || barcode.trim().isEmpty()) {
+            return AjaxResult.error("Barcode is required");
+        }
+        Product p = productService.getProductByBarcodeForScanning(barcode.trim());
+        if (p == null) {
+            p = productService.ensureProductByBarcodeOnly(barcode.trim());
+        }
+        if (p == null || p.getProductId() == null || p.getProductId() <= 0) {
+            return AjaxResult.error("Could not find or create product for barcode");
+        }
+        if (productService.addCart(p.getProductId(), quantity) > 0) {
+            return AjaxResult.success("Add product in Cart successfully", p);
+        }
+        return AjaxResult.error("Add product in Cart failure");
+    }
+
     @PutMapping()
     public AjaxResult updateCart(@RequestParam("cart_id") Long cartId, @RequestParam Integer quantity){
         if(productService.updateCart(cartId, quantity)>=0){
@@ -47,9 +71,17 @@ public class productCartController {
         return AjaxResult.error("Delete product in Cart failure");
     }
 
-
     @GetMapping("/list")
     public AjaxResult getList(@Validated CartListRequest request){
         return AjaxResult.success(productService.getCartPageList(request));
+    }
+
+    @GetMapping("/detail")
+    public AjaxResult getDetail(@RequestParam("cart_id") Long cartId){
+        CartItemResponse item = productService.getCartItemByCartId(cartId);
+        if (item == null) {
+            return AjaxResult.error("Cart item not found or not yours");
+        }
+        return AjaxResult.success(item);
     }
 }

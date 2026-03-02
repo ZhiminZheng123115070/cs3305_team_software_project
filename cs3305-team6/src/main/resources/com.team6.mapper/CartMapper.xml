@@ -45,6 +45,7 @@
             p.name,
             p.brand,
             p.image_url AS imageUrl,
+            p.product_status AS productStatus,
             p.price,
             p.currency,
             p.energy_kcal AS energyKcal,
@@ -62,5 +63,32 @@
         order by ${orderBy}
     </select>
 
+    <select id="getCartItemByCartId" resultType="com.team6.response.CartItemResponse">
+        select
+            c.cart_id AS cartId,
+            c.quantity,
+            c.updated_at AS updatedAt,
+            p.product_id AS productId,
+            p.barcode,
+            p.name,
+            p.brand,
+            p.image_url AS imageUrl,
+            p.product_status AS productStatus,
+            p.price,
+            p.currency,
+            p.energy_kcal AS energyKcal,
+            p.fat,
+            p.saturated_fat AS saturatedFat,
+            p.carbohydrates,
+            p.sugars,
+            p.fiber,
+            p.proteins,
+            p.salt,
+            p.nutri_score AS nutriScore
+        from app_cart c
+        inner join app_products p on c.product_id = p.product_id
+        where c.user_id = #{userId} and c.cart_id = #{cartId}
+        limit 1
+    </select>
 
 </mapper>
